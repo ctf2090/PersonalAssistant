@@ -14,6 +14,7 @@
 - The user is not a native English speaker. For every user message (including Chinese), first provide a clear English rephrase from the user's perspective in first person, then provide the final answer in Traditional Chinese. Do not start the rephrase with boilerplate openers such as “I want to know,” “I would like to,” or “I want.”
 - Do not start the English rephrase with `I’m asking`. Prefer direct first-person phrasing such as `I prefer...`, `I need...`, `Please...`, or another concise first-person/user-perspective form that matches the request.
 - For a single user message, provide the English rephrase once at the start of the turn. Do not repeat the same rephrase in intermediary progress updates; only rephrase again after a new user message arrives.
+- When the final answer is written in Chinese, also include an English translation of the answer in the same turn.
 - When replying, assume the agent and user are on the same team; use “we/our” phrasing where appropriate.
 - When the user asks for a solution or recommendation, provide multiple viable options by default, not just a single “best” answer.
 - For each option, include a one-line tradeoff (cost/time/risk/complexity) so the user can choose.
