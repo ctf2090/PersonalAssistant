@@ -109,7 +109,7 @@ class _AssistantHomePageState extends State<AssistantHomePage> {
           NavigationDestination(
             icon: Icon(Icons.medication_outlined),
             selectedIcon: Icon(Icons.medication),
-            label: 'Medications',
+            label: 'Supplements',
           ),
           NavigationDestination(
             icon: Icon(Icons.bedtime_outlined),
@@ -147,19 +147,19 @@ class TodayView extends StatelessWidget {
           children: [
             ActionChipWidget(
               icon: Icons.check_circle_outline,
-              label: 'Mark current dose as taken',
+              label: 'Log morning stack',
             ),
-            ActionChipWidget(icon: Icons.snooze, label: 'Delay 10 minutes'),
+            ActionChipWidget(icon: Icons.snooze, label: 'Delay 30B to 10:30'),
             ActionChipWidget(
               icon: Icons.nightlight_round,
-              label: 'Start wind-down routine',
+              label: 'Start evening reset',
             ),
           ],
         ),
         const SizedBox(height: 24),
         SectionTitle(
           title: 'Today timeline',
-          subtitle: 'Medication and routine checkpoints in one flow.',
+          subtitle: 'Supplement and routine checkpoints in one flow.',
         ),
         const SizedBox(height: 12),
         ...snapshot.timeline.map(
@@ -184,8 +184,8 @@ class MedicationView extends StatelessWidget {
       padding: const EdgeInsets.fromLTRB(20, 16, 20, 24),
       children: [
         const SectionTitle(
-          title: 'Medication schedule',
-          subtitle: 'Each dose is local-first and ready for future reminders.',
+          title: 'Supplement schedule',
+          subtitle: 'Normalized from your MDS/MDR exports for local-first use.',
         ),
         const SizedBox(height: 16),
         ...snapshot.doses.map(
@@ -195,6 +195,8 @@ class MedicationView extends StatelessWidget {
           ),
         ),
         const SizedBox(height: 8),
+        SupplementSetsCard(sets: snapshot.sets),
+        const SizedBox(height: 8),
         const Card(
           child: Padding(
             padding: EdgeInsets.all(20),
@@ -202,12 +204,12 @@ class MedicationView extends StatelessWidget {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
-                  'Next build step',
+                  'Data source note',
                   style: TextStyle(fontSize: 18, fontWeight: FontWeight.w700),
                 ),
                 SizedBox(height: 8),
                 Text(
-                  'Attach local notifications and persistence, then keep the same data model for Windows, iPad, and iPhone.',
+                  'The current seed data is normalized from data/MDS.json and data/MDR.json because the raw exports contain broken JSON strings and encoding loss.',
                 ),
               ],
             ),
@@ -238,7 +240,7 @@ class RoutineView extends StatelessWidget {
         const SectionTitle(
           title: 'Day / night routine',
           subtitle:
-              'Simple structure for now, ready to become a rules engine later.',
+              'Your current supplement rhythm and support tasks in one place.',
         ),
         const SizedBox(height: 16),
         RoutineBlock(
@@ -286,12 +288,12 @@ class HeaderCard extends StatelessWidget {
           ),
           const SizedBox(height: 10),
           Text(
-            'Stay on track with medication and daily rhythm.',
+            'Stay on track with supplements and daily rhythm.',
             style: theme.textTheme.headlineLarge?.copyWith(color: Colors.white),
           ),
           const SizedBox(height: 14),
           Text(
-            'Next dose at ${snapshot.nextDoseTime} • bedtime target ${snapshot.bedtimeTarget}',
+            'Next item at ${snapshot.nextDoseTime} | bedtime target ${snapshot.bedtimeTarget}',
             style: theme.textTheme.bodyLarge?.copyWith(
               color: const Color(0xFFD9E8E2),
             ),
@@ -482,7 +484,7 @@ class MedicationCard extends StatelessWidget {
             ),
             const SizedBox(height: 8),
             Text(
-              '${dose.dosage} • ${dose.instructions}',
+              '${dose.dosage} | ${dose.instructions}',
               style: theme.textTheme.bodyLarge,
             ),
             const SizedBox(height: 14),
@@ -556,7 +558,7 @@ class RoutineBlock extends StatelessWidget {
                         Text(task.title, style: theme.textTheme.titleMedium),
                         const SizedBox(height: 3),
                         Text(
-                          '${task.time} • ${task.note}',
+                          '${task.time} | ${task.note}',
                           style: theme.textTheme.bodyMedium,
                         ),
                       ],
@@ -626,19 +628,74 @@ class MetadataPill extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 9),
-      decoration: BoxDecoration(
-        color: const Color(0xFFF2F5F3),
-        borderRadius: BorderRadius.circular(999),
+    return ConstrainedBox(
+      constraints: const BoxConstraints(maxWidth: 260),
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 9),
+        decoration: BoxDecoration(
+          color: const Color(0xFFF2F5F3),
+          borderRadius: BorderRadius.circular(999),
+        ),
+        child: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Icon(icon, size: 16, color: const Color(0xFF395D52)),
+            const SizedBox(width: 6),
+            Flexible(
+              child: Text(label, overflow: TextOverflow.ellipsis),
+            ),
+          ],
+        ),
       ),
-      child: Row(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Icon(icon, size: 16, color: const Color(0xFF395D52)),
-          const SizedBox(width: 6),
-          Text(label),
-        ],
+    );
+  }
+}
+
+class SupplementSetsCard extends StatelessWidget {
+  const SupplementSetsCard({super.key, required this.sets});
+
+  final List<SupplementSet> sets;
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    return Card(
+      child: Padding(
+        padding: const EdgeInsets.all(20),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text('Supplement sets', style: theme.textTheme.headlineSmall),
+            const SizedBox(height: 8),
+            Text(
+              'Grouped directly from your source list so the app can show the recurring stacks.',
+              style: theme.textTheme.bodyMedium,
+            ),
+            const SizedBox(height: 16),
+            ...sets.map(
+              (set) => Padding(
+                padding: const EdgeInsets.only(bottom: 12),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(set.name, style: theme.textTheme.titleMedium),
+                    const SizedBox(height: 4),
+                    Text(set.note, style: theme.textTheme.bodyMedium),
+                    const SizedBox(height: 8),
+                    Wrap(
+                      spacing: 10,
+                      runSpacing: 10,
+                      children: [
+                        for (final item in set.items)
+                          MetadataPill(icon: Icons.auto_awesome, label: item),
+                      ],
+                    ),
+                  ],
+                ),
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }
@@ -653,6 +710,7 @@ class AssistantSnapshot {
     required this.focusWindow,
     required this.timeline,
     required this.doses,
+    required this.sets,
     required this.routines,
   });
 
@@ -663,96 +721,186 @@ class AssistantSnapshot {
   final String focusWindow;
   final List<TimelineItem> timeline;
   final List<MedicationDose> doses;
+  final List<SupplementSet> sets;
   final List<RoutineTask> routines;
 
   factory AssistantSnapshot.sample() {
     return const AssistantSnapshot(
-      nextDoseTime: '08:30',
+      nextDoseTime: '07:30',
       bedtimeTarget: '22:45',
-      adherencePercent: 86,
-      pendingCount: 3,
-      focusWindow: '09-12',
+      adherencePercent: 78,
+      pendingCount: 4,
+      focusWindow: '07:30-10:00',
       timeline: [
         TimelineItem(
-          title: 'Morning medication',
-          note: 'Vitamin D and blood pressure medication after breakfast.',
-          time: '08:30',
+          title: 'Morning core stack',
+          note: 'Start with CMZD, methyl B-12 + folate, fish oil, and Q10.',
+          time: '07:30',
           icon: Icons.medication,
           status: ItemStatus.dueSoon,
         ),
         TimelineItem(
-          title: 'Midday reset',
-          note: 'Hydrate, short walk, and confirm lunch timing.',
-          time: '12:30',
-          icon: Icons.wb_sunny_outlined,
+          title: '30B probiotic window',
+          note: 'Keep the probiotic around 10:00 as the fixed morning follow-up.',
+          time: '10:00',
+          icon: Icons.biotech_outlined,
           status: ItemStatus.scheduled,
         ),
         TimelineItem(
-          title: 'Wind-down routine',
-          note: 'Lower lights, no caffeine, prepare night medication.',
-          time: '21:30',
+          title: 'Meal-dependent support',
+          note: 'Use BPG, Lacto, or GlutenEase only when the meal requires them.',
+          time: 'Flexible',
+          icon: Icons.restaurant_outlined,
+          status: ItemStatus.scheduled,
+        ),
+        TimelineItem(
+          title: 'Evening wrap',
+          note: 'Finish with GSH, diltiazem, and the after-dinner ASH slot.',
+          time: '21:00',
           icon: Icons.nightlight_round,
           status: ItemStatus.pending,
         ),
       ],
       doses: [
         MedicationDose(
-          name: 'Amlodipine',
-          dosage: '5 mg',
-          instructions: 'Blood pressure support',
-          time: '08:30',
+          name: '21st Century Calcium Magnesium Zinc + D3',
+          dosage: '1 serving',
+          instructions: 'Daily foundation supplement',
+          time: '07:30',
           mealTiming: 'After breakfast',
-          note: 'Keep water nearby',
+          note: 'Code: CMZD | Part of bbcfq and anxiety core set',
           status: ItemStatus.dueSoon,
         ),
         MedicationDose(
-          name: 'Vitamin D3',
-          dosage: '1 capsule',
-          instructions: 'Daily supplement',
-          time: '08:30',
-          mealTiming: 'With food',
-          note: 'Take with breakfast',
-          status: ItemStatus.completed,
+          name: 'Jarrow Methyl B-12 + Methyl Folate',
+          dosage: 'Extra strength',
+          instructions: 'Mood and blood support',
+          time: '07:30',
+          mealTiming: 'Morning stack',
+          note: 'Code: B612F | Part of bbcfq and anxiety core set',
+          status: ItemStatus.dueSoon,
         ),
         MedicationDose(
-          name: 'Melatonin',
-          dosage: '1 mg',
-          instructions: 'Sleep preparation',
-          time: '22:15',
-          mealTiming: 'Before bed',
-          note: 'Avoid screens after taking it',
+          name: 'California Gold Nutrition Fish Oil',
+          dosage: 'Omega-3',
+          instructions: 'Daily health support',
+          time: '07:30',
+          mealTiming: 'Morning stack',
+          note: 'Code: Fish Oil | Part of bbcfq',
+          status: ItemStatus.dueSoon,
+        ),
+        MedicationDose(
+          name: 'NOW CoQ10',
+          dosage: '100 mg',
+          instructions: 'Heart health support',
+          time: '07:30',
+          mealTiming: 'Morning stack',
+          note: 'Code: Q10 | Part of bbcfq',
+          status: ItemStatus.scheduled,
+        ),
+        MedicationDose(
+          name: 'LactoBif Probiotics',
+          dosage: '30 Billion CFU',
+          instructions: 'Daily gut support',
+          time: '10:00',
+          mealTiming: 'Morning follow-up',
+          note: 'Code: 30B | Fixed time from MDR',
+          status: ItemStatus.scheduled,
+        ),
+        MedicationDose(
+          name: 'Betaine HCl with Pepsin',
+          dosage: 'As needed',
+          instructions: 'Meal support when digestion is off',
+          time: 'Flexible',
+          mealTiming: 'After regular meals',
+          note: 'Code: BPG | Only when needed',
           status: ItemStatus.pending,
+        ),
+        MedicationDose(
+          name: 'L-Glutathione Reduced',
+          dosage: '500 mg',
+          instructions: 'Evening antioxidant support',
+          time: '21:00',
+          mealTiming: 'Evening',
+          note: 'Code: GSH',
+          status: ItemStatus.pending,
+        ),
+        MedicationDose(
+          name: 'Ashwagandha',
+          dosage: '450 mg',
+          instructions: 'Anxiety core set support',
+          time: 'After dinner',
+          mealTiming: 'Dinner after meal',
+          note: 'Code: ASH | Not recommended before sleep',
+          status: ItemStatus.pending,
+        ),
+        MedicationDose(
+          name: 'Diltiazem',
+          dosage: '30 mg',
+          instructions: 'Blood pressure support',
+          time: 'Evening',
+          mealTiming: 'Dinner or later evening',
+          note: 'Prescription item from MDS',
+          status: ItemStatus.pending,
+        ),
+      ],
+      sets: [
+        SupplementSet(
+          name: 'bbcfq',
+          note: 'The recurring base stack captured in MDS.',
+          items: ['CMZD', 'B612F', 'Benf', 'Q10', 'Fish Oil'],
+        ),
+        SupplementSet(
+          name: 'Anxiety core set',
+          note: 'Current mood stability grouping from the source export.',
+          items: ['ASH', 'CMZD', 'B612F'],
         ),
       ],
       routines: [
         RoutineTask(
-          title: 'Wake and hydrate',
-          time: '07:00',
-          note: 'Open curtains and drink one glass of water.',
-          icon: Icons.water_drop_outlined,
+          title: 'Morning supplement stack',
+          time: '07:30',
+          note: 'Take the breakfast stack and anchor the day with CMZD.',
+          icon: Icons.wb_sunny_outlined,
           period: RoutinePeriod.day,
-          status: ItemStatus.completed,
+          status: ItemStatus.dueSoon,
         ),
         RoutineTask(
-          title: 'Deep work block',
-          time: '09:00',
-          note: 'Protect the morning from low-value tasks.',
-          icon: Icons.desktop_windows_outlined,
+          title: '30B probiotic checkpoint',
+          time: '10:00',
+          note: 'Keep this as the fixed morning follow-up item.',
+          icon: Icons.schedule,
           period: RoutinePeriod.day,
           status: ItemStatus.scheduled,
         ),
         RoutineTask(
-          title: 'Dinner cut-off',
-          time: '19:30',
-          note: 'Keep the late evening lighter for sleep quality.',
+          title: 'Meal-triggered support',
+          time: 'Flexible',
+          note: 'Use BPG, Lacto, or GlutenEase only when the meal needs support.',
+          icon: Icons.restaurant_outlined,
+          period: RoutinePeriod.day,
+          status: ItemStatus.scheduled,
+        ),
+        RoutineTask(
+          title: 'Fluticasone nasal care',
+          time: 'Flexible',
+          note: 'Keep the nasal routine available as part of the support flow.',
+          icon: Icons.air,
+          period: RoutinePeriod.day,
+          status: ItemStatus.pending,
+        ),
+        RoutineTask(
+          title: 'Dinner and evening support',
+          time: 'After dinner',
+          note: 'Use the ASH slot after dinner and keep diltiazem in the evening plan.',
           icon: Icons.dinner_dining_outlined,
           period: RoutinePeriod.night,
           status: ItemStatus.pending,
         ),
         RoutineTask(
-          title: 'Sleep routine',
-          time: '22:45',
-          note: 'Brush teeth, take night meds, lights low.',
+          title: 'Evening glutathione wrap',
+          time: '21:00',
+          note: 'Take GSH and start the lower-stimulation night path.',
           icon: Icons.bedtime_outlined,
           period: RoutinePeriod.night,
           status: ItemStatus.pending,
@@ -796,6 +944,18 @@ class MedicationDose {
   final String mealTiming;
   final String note;
   final ItemStatus status;
+}
+
+class SupplementSet {
+  const SupplementSet({
+    required this.name,
+    required this.note,
+    required this.items,
+  });
+
+  final String name;
+  final String note;
+  final List<String> items;
 }
 
 class RoutineTask {
