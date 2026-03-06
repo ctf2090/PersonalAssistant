@@ -24,6 +24,7 @@
 ## New chat bootstrap
 - Run `git status -sb` to understand the repo state.
 - Scan the repo layout with `ls` and prefer `rg --files` for fast file discovery.
+- For a new Codespace project, ensure `gh` and `rg` are installed; install them if missing.
 - Reply with a short plan and the current repo status before making changes.
 
 ## .md
