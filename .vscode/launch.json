@@ -1,0 +1,13 @@
+{
+  "version": "0.2.0",
+  "configurations": [
+    {
+      "name": "PA Flutter (Windows)",
+      "request": "launch",
+      "type": "dart",
+      "cwd": "${workspaceFolder}/app",
+      "program": "lib/main.dart",
+      "deviceId": "windows"
+    }
+  ]
+}
