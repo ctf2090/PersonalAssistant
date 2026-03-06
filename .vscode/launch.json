@@ -2,12 +2,31 @@
   "version": "0.2.0",
   "configurations": [
     {
-      "name": "PA Flutter (Windows)",
+      "name": "PA Flutter (Windows Debug)",
       "request": "launch",
       "type": "dart",
       "cwd": "${workspaceFolder}/app",
       "program": "lib/main.dart",
-      "deviceId": "windows"
+      "deviceId": "windows",
+      "flutterMode": "debug"
+    },
+    {
+      "name": "PA Flutter (Windows Profile)",
+      "request": "launch",
+      "type": "dart",
+      "cwd": "${workspaceFolder}/app",
+      "program": "lib/main.dart",
+      "deviceId": "windows",
+      "flutterMode": "profile"
+    },
+    {
+      "name": "PA Flutter (Windows Release)",
+      "request": "launch",
+      "type": "dart",
+      "cwd": "${workspaceFolder}/app",
+      "program": "lib/main.dart",
+      "deviceId": "windows",
+      "flutterMode": "release"
     }
   ]
 }
