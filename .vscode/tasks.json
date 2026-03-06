@@ -42,6 +42,12 @@
         "PA Run Release EXE"
       ],
       "problemMatcher": []
+    },
+    {
+      "label": "PA Make Release",
+      "type": "shell",
+      "command": "powershell -NoProfile -ExecutionPolicy Bypass -File \"${workspaceFolder}\\scripts\\make_release.ps1\"",
+      "problemMatcher": []
     }
   ]
 }

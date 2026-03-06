@@ -106,3 +106,18 @@ install(DIRECTORY "${PROJECT_BUILD_DIR}/${FLUTTER_ASSET_DIR_NAME}"
 install(FILES "${AOT_LIBRARY}" DESTINATION "${INSTALL_BUNDLE_DATA_DIR}"
   CONFIGURATIONS Profile;Release
   COMPONENT Runtime)
+
+# Bundle the workspace JSON files into the Windows runner output so packaged
+# builds can load MDS/MDR without depending on the repo root.
+set(ROOT_WORKSPACE_DATA_DIR "${CMAKE_SOURCE_DIR}/../../data")
+add_custom_target(release_bundle
+  COMMAND ${CMAKE_COMMAND} -E make_directory "${BUILD_BUNDLE_DIR}/data"
+  COMMAND ${CMAKE_COMMAND} -E copy_if_different
+    "${ROOT_WORKSPACE_DATA_DIR}/MDS.json"
+    "${BUILD_BUNDLE_DIR}/data/MDS.json"
+  COMMAND ${CMAKE_COMMAND} -E copy_if_different
+    "${ROOT_WORKSPACE_DATA_DIR}/MDR.json"
+    "${BUILD_BUNDLE_DIR}/data/MDR.json"
+  DEPENDS ${BINARY_NAME}
+  COMMENT "Bundling workspace JSON files into the Windows release output"
+)
