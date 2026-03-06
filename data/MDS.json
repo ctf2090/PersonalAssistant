@@ -1,0 +1,195 @@
+{
+  "meta": {
+    "name": "MDS",
+    "fullName": "My Daily Supplements",
+    "source": "Recovered from the local export on 2026-03-06",
+    "updatedAt": "2026-03-06T15:20:00+08:00",
+    "recoveryNote": "This file was normalized from a corrupted export. Unrecoverable strings were replaced with explicit English descriptions."
+  },
+  "items": [
+    {
+      "code": "Benf",
+      "name": "Doctor's Best Benfotiamine 150 with BenfoPure",
+      "productCode": "DRB-00129",
+      "category": "Wernicke-Korsakoff Syndrome (WKS) support",
+      "time": "07:30",
+      "mealTiming": "Morning stack",
+      "details": "Included in the bbcfq stack.",
+      "status": "scheduled"
+    },
+    {
+      "code": "B612F",
+      "name": "Jarrow Formulas Vegan Methyl B-12 & Methyl Folate Extra Strength",
+      "productCode": "JRW-18018",
+      "category": "Thalassemia support",
+      "time": "07:30",
+      "mealTiming": "After breakfast",
+      "details": "Part of the bbcfq stack and the anxiety core set.",
+      "status": "dueSoon"
+    },
+    {
+      "code": "RALA",
+      "name": "Doctor's Best Stabilized R-Lipoic Acid with BioEnhanced Na-RALA",
+      "productCode": "DRB-00123",
+      "category": "Diabetes support",
+      "time": "Morning",
+      "mealTiming": "Daily",
+      "details": "200 mg daily.",
+      "status": "scheduled"
+    },
+    {
+      "code": "QWB",
+      "name": "NOW Foods Quercetin with Bromelain",
+      "productCode": "NOW-03091",
+      "category": "Soybean allergy support",
+      "time": "Morning",
+      "mealTiming": "Daily",
+      "details": null,
+      "status": "scheduled"
+    },
+    {
+      "code": "BPG",
+      "name": "Doctor's Best Betaine HCl with Pepsin and Gentian Bitters",
+      "productCode": "DRB-00163",
+      "category": "Stomach upset support",
+      "time": "Flexible",
+      "mealTiming": "After regular meals",
+      "details": "Use only when needed.",
+      "status": "pending"
+    },
+    {
+      "code": "Lacto",
+      "name": "Enzymedica Lacto",
+      "productCode": "ENZ-24121",
+      "category": "Milk allergy support",
+      "time": "Flexible",
+      "mealTiming": "Before dairy-containing meals",
+      "details": null,
+      "status": "pending"
+    },
+    {
+      "code": "GlutenEase",
+      "name": "Enzymedica GlutenEase Extra Strength",
+      "productCode": "ENZ-12011",
+      "category": "Wheat allergy support",
+      "time": "Flexible",
+      "mealTiming": "Before gluten-containing meals",
+      "details": null,
+      "status": "pending"
+    },
+    {
+      "code": "Q10",
+      "name": "NOW Foods CoQ10, 100 mg",
+      "productCode": "NOW-03188",
+      "category": "Heart health",
+      "time": "07:30",
+      "mealTiming": "Morning stack",
+      "details": "Part of the bbcfq stack.",
+      "status": "scheduled"
+    },
+    {
+      "code": "Diltiazem",
+      "name": "Diltiazem 30 mg",
+      "productCode": null,
+      "category": "Blood pressure support",
+      "time": "Evening",
+      "mealTiming": "Dinner or later evening",
+      "details": "Prescription item.",
+      "status": "pending"
+    },
+    {
+      "code": "CMZD",
+      "name": "21st Century Calcium Magnesium Zinc + D3",
+      "productCode": "CEN-22263",
+      "category": "Daily health care",
+      "time": "07:30",
+      "mealTiming": "After breakfast",
+      "details": "Part of the bbcfq stack and the anxiety core set.",
+      "status": "dueSoon"
+    },
+    {
+      "code": "Fish Oil",
+      "name": "California Gold Nutrition Omega-3 Premium Fish Oil",
+      "productCode": "MLI-00952",
+      "category": "Daily health care",
+      "time": "07:30",
+      "mealTiming": "Morning stack",
+      "details": "Part of the bbcfq stack.",
+      "status": "dueSoon"
+    },
+    {
+      "code": "30B",
+      "name": "California Gold Nutrition LactoBif Probiotics, 30 Billion CFU",
+      "productCode": "CGN-00965",
+      "category": "Daily health care",
+      "time": "10:00",
+      "mealTiming": "Morning follow-up",
+      "details": "Fixed time from MDR.",
+      "status": "scheduled"
+    },
+    {
+      "code": "GSH",
+      "name": "California Gold Nutrition L-Glutathione Reduced, 500 mg",
+      "productCode": "CGN-01897",
+      "category": "Daily health care",
+      "time": "21:00",
+      "mealTiming": "Evening",
+      "details": null,
+      "status": "pending"
+    },
+    {
+      "code": "ASH",
+      "name": "NOW Foods Ashwagandha, Standardized Extract, 450 mg, 90 Veg Capsules",
+      "productCode": "NOW-04603",
+      "category": "Anxiety core set",
+      "time": "After dinner",
+      "mealTiming": "Dinner after meal",
+      "details": "Not recommended before sleep.",
+      "status": "pending"
+    },
+    {
+      "code": "NRT",
+      "name": "Nicotine Replacement Therapy gum",
+      "productCode": null,
+      "category": "Daily use",
+      "time": null,
+      "mealTiming": "As needed",
+      "details": "Track separately from supplements.",
+      "status": "pending"
+    },
+    {
+      "code": "LUT",
+      "name": "Doctor's Best Lutein (Lutemax 2020)",
+      "productCode": "DRB-63505",
+      "category": "Eye health",
+      "time": "Evening",
+      "mealTiming": "With dinner",
+      "details": "Protect retina, filter blue light, and reduce eye fatigue.",
+      "status": "scheduled"
+    },
+    {
+      "code": "GGC",
+      "name": "GeGen Chew",
+      "productCode": null,
+      "category": "Named item / snack supplement",
+      "time": null,
+      "mealTiming": "Snack or flexible",
+      "details": "Recovered alias only; replace with the original name if needed.",
+      "status": "scheduled"
+    }
+  ],
+  "sets": {
+    "bbcfq": [
+      "CMZD",
+      "B612F",
+      "Benf",
+      "Q10",
+      "Fish Oil"
+    ],
+    "anxietyCoreSet": [
+      "ASH",
+      "CMZD",
+      "B612F"
+    ]
+  }
+}

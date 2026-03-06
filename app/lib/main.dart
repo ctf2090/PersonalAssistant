@@ -1,12 +1,17 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/widget_previews.dart';
 
+import 'assistant_models.dart';
+import 'assistant_snapshot_loader.dart';
+
 void main() {
   runApp(const PersonalAssistantApp());
 }
 
 class PersonalAssistantApp extends StatelessWidget {
-  const PersonalAssistantApp({super.key});
+  const PersonalAssistantApp({super.key, this.snapshotFuture});
+
+  final Future<AssistantSnapshot>? snapshotFuture;
 
   @override
   Widget build(BuildContext context) {
@@ -59,13 +64,50 @@ class PersonalAssistantApp extends StatelessWidget {
           ),
         ),
       ),
-      home: const AssistantHomePage(),
+      home: AssistantHomeLoader(snapshotFuture: snapshotFuture),
+    );
+  }
+}
+
+class AssistantHomeLoader extends StatefulWidget {
+  const AssistantHomeLoader({super.key, this.snapshotFuture});
+
+  final Future<AssistantSnapshot>? snapshotFuture;
+
+  @override
+  State<AssistantHomeLoader> createState() => _AssistantHomeLoaderState();
+}
+
+class _AssistantHomeLoaderState extends State<AssistantHomeLoader> {
+  late final Future<AssistantSnapshot> _snapshotFuture;
+
+  @override
+  void initState() {
+    super.initState();
+    _snapshotFuture = widget.snapshotFuture ?? loadAssistantSnapshot();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return FutureBuilder<AssistantSnapshot>(
+      future: _snapshotFuture,
+      builder: (context, snapshot) {
+        if (snapshot.hasError) {
+          return ErrorScaffold(message: '${snapshot.error}');
+        }
+        if (!snapshot.hasData) {
+          return const LoadingScaffold();
+        }
+        return AssistantHomePage(snapshot: snapshot.data!);
+      },
     );
   }
 }
 
 class AssistantHomePage extends StatefulWidget {
-  const AssistantHomePage({super.key});
+  const AssistantHomePage({super.key, required this.snapshot});
+
+  final AssistantSnapshot snapshot;
 
   @override
   State<AssistantHomePage> createState() => _AssistantHomePageState();
@@ -73,14 +115,13 @@ class AssistantHomePage extends StatefulWidget {
 
 class _AssistantHomePageState extends State<AssistantHomePage> {
   int _selectedIndex = 0;
-  final AssistantSnapshot _snapshot = AssistantSnapshot.sample();
 
   @override
   Widget build(BuildContext context) {
     final pages = <Widget>[
-      TodayView(snapshot: _snapshot),
-      MedicationView(snapshot: _snapshot),
-      RoutineView(snapshot: _snapshot),
+      TodayView(snapshot: widget.snapshot),
+      MedicationView(snapshot: widget.snapshot),
+      RoutineView(snapshot: widget.snapshot),
     ];
 
     return Scaffold(
@@ -651,6 +692,56 @@ class MetadataPill extends StatelessWidget {
   }
 }
 
+class LoadingScaffold extends StatelessWidget {
+  const LoadingScaffold({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    return const Scaffold(
+      body: Center(
+        child: CircularProgressIndicator(),
+      ),
+    );
+  }
+}
+
+class ErrorScaffold extends StatelessWidget {
+  const ErrorScaffold({super.key, required this.message});
+
+  final String message;
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    return Scaffold(
+      body: Center(
+        child: Padding(
+          padding: const EdgeInsets.all(24),
+          child: Card(
+            child: Padding(
+              padding: const EdgeInsets.all(24),
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text('Unable to load PA data', style: theme.textTheme.headlineSmall),
+                  const SizedBox(height: 12),
+                  Text(
+                    'Check the root data directory and ensure MDS.json and MDR.json are valid UTF-8 JSON files.',
+                    style: theme.textTheme.bodyLarge,
+                  ),
+                  const SizedBox(height: 12),
+                  Text(message, style: theme.textTheme.bodyMedium),
+                ],
+              ),
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+}
+
 class SupplementSetsCard extends StatelessWidget {
   const SupplementSetsCard({super.key, required this.sets});
 
@@ -701,299 +792,10 @@ class SupplementSetsCard extends StatelessWidget {
   }
 }
 
-class AssistantSnapshot {
-  const AssistantSnapshot({
-    required this.nextDoseTime,
-    required this.bedtimeTarget,
-    required this.adherencePercent,
-    required this.pendingCount,
-    required this.focusWindow,
-    required this.timeline,
-    required this.doses,
-    required this.sets,
-    required this.routines,
-  });
-
-  final String nextDoseTime;
-  final String bedtimeTarget;
-  final int adherencePercent;
-  final int pendingCount;
-  final String focusWindow;
-  final List<TimelineItem> timeline;
-  final List<MedicationDose> doses;
-  final List<SupplementSet> sets;
-  final List<RoutineTask> routines;
-
-  factory AssistantSnapshot.sample() {
-    return const AssistantSnapshot(
-      nextDoseTime: '07:30',
-      bedtimeTarget: '22:45',
-      adherencePercent: 78,
-      pendingCount: 4,
-      focusWindow: '07:30-10:00',
-      timeline: [
-        TimelineItem(
-          title: 'Morning core stack',
-          note: 'Start with CMZD, methyl B-12 + folate, fish oil, and Q10.',
-          time: '07:30',
-          icon: Icons.medication,
-          status: ItemStatus.dueSoon,
-        ),
-        TimelineItem(
-          title: '30B probiotic window',
-          note: 'Keep the probiotic around 10:00 as the fixed morning follow-up.',
-          time: '10:00',
-          icon: Icons.biotech_outlined,
-          status: ItemStatus.scheduled,
-        ),
-        TimelineItem(
-          title: 'Meal-dependent support',
-          note: 'Use BPG, Lacto, or GlutenEase only when the meal requires them.',
-          time: 'Flexible',
-          icon: Icons.restaurant_outlined,
-          status: ItemStatus.scheduled,
-        ),
-        TimelineItem(
-          title: 'Evening wrap',
-          note: 'Finish with GSH, diltiazem, and the after-dinner ASH slot.',
-          time: '21:00',
-          icon: Icons.nightlight_round,
-          status: ItemStatus.pending,
-        ),
-      ],
-      doses: [
-        MedicationDose(
-          name: '21st Century Calcium Magnesium Zinc + D3',
-          dosage: '1 serving',
-          instructions: 'Daily foundation supplement',
-          time: '07:30',
-          mealTiming: 'After breakfast',
-          note: 'Code: CMZD | Part of bbcfq and anxiety core set',
-          status: ItemStatus.dueSoon,
-        ),
-        MedicationDose(
-          name: 'Jarrow Methyl B-12 + Methyl Folate',
-          dosage: 'Extra strength',
-          instructions: 'Mood and blood support',
-          time: '07:30',
-          mealTiming: 'Morning stack',
-          note: 'Code: B612F | Part of bbcfq and anxiety core set',
-          status: ItemStatus.dueSoon,
-        ),
-        MedicationDose(
-          name: 'California Gold Nutrition Fish Oil',
-          dosage: 'Omega-3',
-          instructions: 'Daily health support',
-          time: '07:30',
-          mealTiming: 'Morning stack',
-          note: 'Code: Fish Oil | Part of bbcfq',
-          status: ItemStatus.dueSoon,
-        ),
-        MedicationDose(
-          name: 'NOW CoQ10',
-          dosage: '100 mg',
-          instructions: 'Heart health support',
-          time: '07:30',
-          mealTiming: 'Morning stack',
-          note: 'Code: Q10 | Part of bbcfq',
-          status: ItemStatus.scheduled,
-        ),
-        MedicationDose(
-          name: 'LactoBif Probiotics',
-          dosage: '30 Billion CFU',
-          instructions: 'Daily gut support',
-          time: '10:00',
-          mealTiming: 'Morning follow-up',
-          note: 'Code: 30B | Fixed time from MDR',
-          status: ItemStatus.scheduled,
-        ),
-        MedicationDose(
-          name: 'Betaine HCl with Pepsin',
-          dosage: 'As needed',
-          instructions: 'Meal support when digestion is off',
-          time: 'Flexible',
-          mealTiming: 'After regular meals',
-          note: 'Code: BPG | Only when needed',
-          status: ItemStatus.pending,
-        ),
-        MedicationDose(
-          name: 'L-Glutathione Reduced',
-          dosage: '500 mg',
-          instructions: 'Evening antioxidant support',
-          time: '21:00',
-          mealTiming: 'Evening',
-          note: 'Code: GSH',
-          status: ItemStatus.pending,
-        ),
-        MedicationDose(
-          name: 'Ashwagandha',
-          dosage: '450 mg',
-          instructions: 'Anxiety core set support',
-          time: 'After dinner',
-          mealTiming: 'Dinner after meal',
-          note: 'Code: ASH | Not recommended before sleep',
-          status: ItemStatus.pending,
-        ),
-        MedicationDose(
-          name: 'Diltiazem',
-          dosage: '30 mg',
-          instructions: 'Blood pressure support',
-          time: 'Evening',
-          mealTiming: 'Dinner or later evening',
-          note: 'Prescription item from MDS',
-          status: ItemStatus.pending,
-        ),
-      ],
-      sets: [
-        SupplementSet(
-          name: 'bbcfq',
-          note: 'The recurring base stack captured in MDS.',
-          items: ['CMZD', 'B612F', 'Benf', 'Q10', 'Fish Oil'],
-        ),
-        SupplementSet(
-          name: 'Anxiety core set',
-          note: 'Current mood stability grouping from the source export.',
-          items: ['ASH', 'CMZD', 'B612F'],
-        ),
-      ],
-      routines: [
-        RoutineTask(
-          title: 'Morning supplement stack',
-          time: '07:30',
-          note: 'Take the breakfast stack and anchor the day with CMZD.',
-          icon: Icons.wb_sunny_outlined,
-          period: RoutinePeriod.day,
-          status: ItemStatus.dueSoon,
-        ),
-        RoutineTask(
-          title: '30B probiotic checkpoint',
-          time: '10:00',
-          note: 'Keep this as the fixed morning follow-up item.',
-          icon: Icons.schedule,
-          period: RoutinePeriod.day,
-          status: ItemStatus.scheduled,
-        ),
-        RoutineTask(
-          title: 'Meal-triggered support',
-          time: 'Flexible',
-          note: 'Use BPG, Lacto, or GlutenEase only when the meal needs support.',
-          icon: Icons.restaurant_outlined,
-          period: RoutinePeriod.day,
-          status: ItemStatus.scheduled,
-        ),
-        RoutineTask(
-          title: 'Fluticasone nasal care',
-          time: 'Flexible',
-          note: 'Keep the nasal routine available as part of the support flow.',
-          icon: Icons.air,
-          period: RoutinePeriod.day,
-          status: ItemStatus.pending,
-        ),
-        RoutineTask(
-          title: 'Dinner and evening support',
-          time: 'After dinner',
-          note: 'Use the ASH slot after dinner and keep diltiazem in the evening plan.',
-          icon: Icons.dinner_dining_outlined,
-          period: RoutinePeriod.night,
-          status: ItemStatus.pending,
-        ),
-        RoutineTask(
-          title: 'Evening glutathione wrap',
-          time: '21:00',
-          note: 'Take GSH and start the lower-stimulation night path.',
-          icon: Icons.bedtime_outlined,
-          period: RoutinePeriod.night,
-          status: ItemStatus.pending,
-        ),
-      ],
-    );
-  }
-}
-
-class TimelineItem {
-  const TimelineItem({
-    required this.title,
-    required this.note,
-    required this.time,
-    required this.icon,
-    required this.status,
-  });
-
-  final String title;
-  final String note;
-  final String time;
-  final IconData icon;
-  final ItemStatus status;
-}
-
-class MedicationDose {
-  const MedicationDose({
-    required this.name,
-    required this.dosage,
-    required this.instructions,
-    required this.time,
-    required this.mealTiming,
-    required this.note,
-    required this.status,
-  });
-
-  final String name;
-  final String dosage;
-  final String instructions;
-  final String time;
-  final String mealTiming;
-  final String note;
-  final ItemStatus status;
-}
-
-class SupplementSet {
-  const SupplementSet({
-    required this.name,
-    required this.note,
-    required this.items,
-  });
-
-  final String name;
-  final String note;
-  final List<String> items;
-}
-
-class RoutineTask {
-  const RoutineTask({
-    required this.title,
-    required this.time,
-    required this.note,
-    required this.icon,
-    required this.period,
-    required this.status,
-  });
-
-  final String title;
-  final String time;
-  final String note;
-  final IconData icon;
-  final RoutinePeriod period;
-  final ItemStatus status;
-}
-
-enum RoutinePeriod { day, night }
-
-enum ItemStatus {
-  completed('Done', Color(0xFF395D52)),
-  dueSoon('Due soon', Color(0xFFE0872C)),
-  scheduled('Planned', Color(0xFF66877D)),
-  pending('Pending', Color(0xFF7C5C2A));
-
-  const ItemStatus(this.label, this.color);
-
-  final String label;
-  final Color color;
-}
-
 @Preview(name: 'AssistantHomePage')
 Widget previewAssistantHomePage() {
-  return const MaterialApp(
+  return MaterialApp(
     debugShowCheckedModeBanner: false,
-    home: AssistantHomePage(),
+    home: AssistantHomePage(snapshot: AssistantSnapshot.sample()),
   );
 }

@@ -1,12 +1,18 @@
 import 'package:flutter_test/flutter_test.dart';
 
+import 'package:personal_assistant/assistant_models.dart';
 import 'package:personal_assistant/main.dart';
 
 void main() {
   testWidgets('renders MVP dashboard and navigation', (
     WidgetTester tester,
   ) async {
-    await tester.pumpWidget(const PersonalAssistantApp());
+    await tester.pumpWidget(
+      PersonalAssistantApp(
+        snapshotFuture: Future.value(AssistantSnapshot.sample()),
+      ),
+    );
+    await tester.pumpAndSettle();
 
     expect(find.text('Personal Assistant'), findsOneWidget);
     expect(

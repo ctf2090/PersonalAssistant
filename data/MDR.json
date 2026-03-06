@@ -1,0 +1,144 @@
+{
+  "meta": {
+    "name": "MDR",
+    "fullName": "My Daily Routine",
+    "source": "Recovered from the local export on 2026-03-06",
+    "updatedAt": "2026-03-06T15:20:00+08:00",
+    "recoveryNote": "This file was normalized from a corrupted export. One truncated routine line and one formula note remain placeholders."
+  },
+  "dashboard": {
+    "nextItemTime": "07:30",
+    "bedtimeTarget": "22:45",
+    "adherencePercent": 78,
+    "pendingCount": 4,
+    "focusWindow": "07:30-10:00"
+  },
+  "timeline": [
+    {
+      "title": "Morning core stack",
+      "note": "Start with CMZD, methyl B-12 + folate, fish oil, and Q10.",
+      "time": "07:30",
+      "icon": "medication",
+      "status": "dueSoon"
+    },
+    {
+      "title": "30B probiotic window",
+      "note": "Keep the probiotic around 10:00 as the fixed morning follow-up.",
+      "time": "10:00",
+      "icon": "biotech_outlined",
+      "status": "scheduled"
+    },
+    {
+      "title": "Meal-dependent support",
+      "note": "Use BPG, Lacto, or GlutenEase only when the meal requires them.",
+      "time": "Flexible",
+      "icon": "restaurant_outlined",
+      "status": "scheduled"
+    },
+    {
+      "title": "Evening wrap",
+      "note": "Finish with GSH, diltiazem, and the after-dinner ASH slot.",
+      "time": "21:00",
+      "icon": "nightlight_round",
+      "status": "pending"
+    }
+  ],
+  "routine": [
+    {
+      "title": "Morning supplement stack",
+      "time": "07:30",
+      "period": "day",
+      "icon": "wb_sunny_outlined",
+      "status": "dueSoon",
+      "note": "Take the breakfast stack and anchor the day with CMZD.",
+      "relatedCodes": [
+        "CMZD",
+        "B612F",
+        "Fish Oil",
+        "Q10",
+        "Benf"
+      ]
+    },
+    {
+      "title": "30B probiotic checkpoint",
+      "time": "10:00",
+      "period": "day",
+      "icon": "schedule",
+      "status": "scheduled",
+      "note": "Keep this as the fixed morning follow-up item.",
+      "relatedCodes": [
+        "30B"
+      ]
+    },
+    {
+      "title": "Supplement prep check",
+      "time": "Flexible",
+      "period": "day",
+      "icon": "inventory_2_outlined",
+      "status": "scheduled",
+      "note": "Keep the frequently used supplements organized before meals and follow-ups.",
+      "relatedCodes": []
+    },
+    {
+      "title": "Meal-triggered support",
+      "time": "Flexible",
+      "period": "day",
+      "icon": "restaurant_outlined",
+      "status": "scheduled",
+      "note": "Use BPG, Lacto, or GlutenEase only when the meal needs support. Track NRT separately.",
+      "relatedCodes": [
+        "BPG",
+        "Lacto",
+        "GlutenEase",
+        "NRT"
+      ]
+    },
+    {
+      "title": "Routine note needs manual recovery",
+      "time": null,
+      "period": "day",
+      "icon": "help_outline",
+      "status": "pending",
+      "note": "One routine line in the original export was truncated. Replace this placeholder if the original note is recovered.",
+      "relatedCodes": []
+    },
+    {
+      "title": "Fluticasone nasal care",
+      "time": "Flexible",
+      "period": "day",
+      "icon": "air",
+      "status": "pending",
+      "note": "Keep the nasal routine available as part of the support flow. Confirm the original dosing note manually if needed.",
+      "relatedCodes": []
+    },
+    {
+      "title": "Dinner and evening support",
+      "time": "After dinner",
+      "period": "night",
+      "icon": "dinner_dining_outlined",
+      "status": "pending",
+      "note": "Use the ASH slot after dinner and keep diltiazem in the evening plan.",
+      "relatedCodes": [
+        "ASH",
+        "Diltiazem"
+      ]
+    },
+    {
+      "title": "Evening glutathione wrap",
+      "time": "21:00",
+      "period": "night",
+      "icon": "bedtime_outlined",
+      "status": "pending",
+      "note": "Take GSH and start the lower-stimulation night path.",
+      "relatedCodes": [
+        "GSH"
+      ]
+    }
+  ],
+  "recipesOrFormulas": [
+    {
+      "name": "Formula note needs manual recovery",
+      "formula": "The original formula text was corrupted in the source export. Replace this placeholder from the original source if it becomes available."
+    }
+  ]
+}
