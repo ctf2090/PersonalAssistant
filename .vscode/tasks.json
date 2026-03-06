@@ -4,7 +4,7 @@
     {
       "label": "PA Stop EXE",
       "type": "shell",
-      "command": "Get-Process personal_assistant -ErrorAction SilentlyContinue | Stop-Process -Force",
+      "command": "$process = Get-Process personal_assistant -ErrorAction SilentlyContinue; if ($process) { $process | Stop-Process -Force }; exit 0",
       "problemMatcher": []
     },
     {
