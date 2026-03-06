@@ -9,7 +9,7 @@ void main() {
   ) async {
     await tester.pumpWidget(
       PersonalAssistantApp(
-        snapshotFuture: Future.value(AssistantSnapshot.sample()),
+        workspaceFuture: Future.value(AssistantWorkspaceData.sample()),
       ),
     );
     await tester.pumpAndSettle();
@@ -29,5 +29,11 @@ void main() {
       find.text('21st Century Calcium Magnesium Zinc + D3'),
       findsOneWidget,
     );
+
+    await tester.tap(find.text('Editor'));
+    await tester.pumpAndSettle();
+
+    expect(find.text('Data editor'), findsOneWidget);
+    expect(find.text('Save All'), findsOneWidget);
   });
 }

@@ -1,4 +1,8 @@
+import 'dart:convert';
+
 import 'package:flutter/material.dart';
+
+const JsonEncoder _prettyJsonEncoder = JsonEncoder.withIndent('  ');
 
 class AssistantSnapshot {
   const AssistantSnapshot({
@@ -246,6 +250,73 @@ class AssistantSnapshot {
   }
 }
 
+class AssistantWorkspaceData {
+  const AssistantWorkspaceData({
+    required this.snapshot,
+    required this.mdsJson,
+    required this.mdrJson,
+    this.mdsPath,
+    this.mdrPath,
+  });
+
+  final AssistantSnapshot snapshot;
+  final String mdsJson;
+  final String mdrJson;
+  final String? mdsPath;
+  final String? mdrPath;
+
+  factory AssistantWorkspaceData.sample() {
+    return AssistantWorkspaceData(
+      snapshot: AssistantSnapshot.sample(),
+      mdsJson: formatJsonSource(_sampleMdsJson),
+      mdrJson: formatJsonSource(_sampleMdrJson),
+    );
+  }
+
+  factory AssistantWorkspaceData.fromJsonTexts({
+    required String mdsJson,
+    required String mdrJson,
+    String? mdsPath,
+    String? mdrPath,
+  }) {
+    final mds = decodeJsonObject(mdsJson, label: 'MDS');
+    final mdr = decodeJsonObject(mdrJson, label: 'MDR');
+    return AssistantWorkspaceData(
+      snapshot: AssistantSnapshot.fromRecoveredData(mds, mdr),
+      mdsJson: formatJsonObject(mds),
+      mdrJson: formatJsonObject(mdr),
+      mdsPath: mdsPath,
+      mdrPath: mdrPath,
+    );
+  }
+
+  AssistantWorkspaceData copyWith({
+    AssistantSnapshot? snapshot,
+    String? mdsJson,
+    String? mdrJson,
+    String? mdsPath,
+    String? mdrPath,
+  }) {
+    return AssistantWorkspaceData(
+      snapshot: snapshot ?? this.snapshot,
+      mdsJson: mdsJson ?? this.mdsJson,
+      mdrJson: mdrJson ?? this.mdrJson,
+      mdsPath: mdsPath ?? this.mdsPath,
+      mdrPath: mdrPath ?? this.mdrPath,
+    );
+  }
+}
+
+enum AssistantDocumentType {
+  mds('MDS', 'MDS.json'),
+  mdr('MDR', 'MDR.json');
+
+  const AssistantDocumentType(this.label, this.fileName);
+
+  final String label;
+  final String fileName;
+}
+
 class TimelineItem {
   const TimelineItem({
     required this.title,
@@ -476,3 +547,111 @@ IconData _iconFromName(Object? value) {
       return Icons.event_note;
   }
 }
+
+Map<String, dynamic> decodeJsonObject(String source, {required String label}) {
+  try {
+    final decoded = jsonDecode(source);
+    if (decoded is Map<String, dynamic>) {
+      return decoded;
+    }
+    if (decoded is Map) {
+      return decoded.cast<String, dynamic>();
+    }
+    throw const FormatException('JSON root must be an object.');
+  } on FormatException catch (error) {
+    throw FormatException('$label JSON is invalid: ${error.message}');
+  }
+}
+
+String formatJsonSource(String source) {
+  return formatJsonObject(jsonDecode(source) as Object);
+}
+
+String formatJsonObject(Object jsonObject) {
+  return _prettyJsonEncoder.convert(jsonObject);
+}
+
+const String _sampleMdsJson = r'''
+{
+  "meta": {
+    "name": "MDS",
+    "fullName": "My Daily Supplements",
+    "source": "Recovered from the local export on 2026-03-06",
+    "updatedAt": "2026-03-06T15:20:00+08:00",
+    "recoveryNote": "This file was normalized from a corrupted export. Unrecoverable strings were replaced with explicit English descriptions."
+  },
+  "items": [
+    {
+      "code": "Benf",
+      "name": "Doctor's Best Benfotiamine 150 with BenfoPure",
+      "productCode": "DRB-00129",
+      "category": "Wernicke-Korsakoff Syndrome (WKS) support",
+      "time": "07:30",
+      "mealTiming": "Morning stack",
+      "details": "Included in the bbcfq stack.",
+      "status": "scheduled"
+    }
+  ],
+  "sets": {
+    "bbcfq": [
+      "CMZD",
+      "B612F",
+      "Benf",
+      "Q10",
+      "Fish Oil"
+    ],
+    "anxietyCoreSet": [
+      "ASH",
+      "CMZD",
+      "B612F"
+    ]
+  }
+}
+''';
+
+const String _sampleMdrJson = r'''
+{
+  "meta": {
+    "name": "MDR",
+    "fullName": "My Daily Routine",
+    "source": "Recovered from the local export on 2026-03-06",
+    "updatedAt": "2026-03-06T15:20:00+08:00",
+    "recoveryNote": "This file was normalized from a corrupted export. One truncated routine line and one formula note remain placeholders."
+  },
+  "dashboard": {
+    "nextItemTime": "07:30",
+    "bedtimeTarget": "22:45",
+    "adherencePercent": 78,
+    "pendingCount": 4,
+    "focusWindow": "07:30-10:00"
+  },
+  "timeline": [
+    {
+      "title": "Morning core stack",
+      "note": "Start with CMZD, methyl B-12 + folate, fish oil, and Q10.",
+      "time": "07:30",
+      "icon": "medication",
+      "status": "dueSoon"
+    }
+  ],
+  "routine": [
+    {
+      "title": "Morning supplement stack",
+      "time": "07:30",
+      "period": "day",
+      "icon": "wb_sunny_outlined",
+      "status": "dueSoon",
+      "note": "Take the breakfast stack and anchor the day with CMZD.",
+      "relatedCodes": [
+        "CMZD"
+      ]
+    }
+  ],
+  "recipesOrFormulas": [
+    {
+      "name": "Formula note needs manual recovery",
+      "formula": "The original formula text was corrupted in the source export. Replace this placeholder from the original source if it becomes available."
+    }
+  ]
+}
+''';

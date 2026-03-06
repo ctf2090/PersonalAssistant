@@ -1,17 +1,18 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/widget_previews.dart';
 
+import 'assistant_editor_view.dart';
 import 'assistant_models.dart';
-import 'assistant_snapshot_loader.dart';
+import 'assistant_workspace_repository.dart';
 
 void main() {
   runApp(const PersonalAssistantApp());
 }
 
 class PersonalAssistantApp extends StatelessWidget {
-  const PersonalAssistantApp({super.key, this.snapshotFuture});
+  const PersonalAssistantApp({super.key, this.workspaceFuture});
 
-  final Future<AssistantSnapshot>? snapshotFuture;
+  final Future<AssistantWorkspaceData>? workspaceFuture;
 
   @override
   Widget build(BuildContext context) {
@@ -64,50 +65,66 @@ class PersonalAssistantApp extends StatelessWidget {
           ),
         ),
       ),
-      home: AssistantHomeLoader(snapshotFuture: snapshotFuture),
+      home: AssistantHomeLoader(workspaceFuture: workspaceFuture),
     );
   }
 }
 
 class AssistantHomeLoader extends StatefulWidget {
-  const AssistantHomeLoader({super.key, this.snapshotFuture});
+  const AssistantHomeLoader({super.key, this.workspaceFuture});
 
-  final Future<AssistantSnapshot>? snapshotFuture;
+  final Future<AssistantWorkspaceData>? workspaceFuture;
 
   @override
   State<AssistantHomeLoader> createState() => _AssistantHomeLoaderState();
 }
 
 class _AssistantHomeLoaderState extends State<AssistantHomeLoader> {
-  late final Future<AssistantSnapshot> _snapshotFuture;
+  late final Future<AssistantWorkspaceData> _workspaceFuture;
+  AssistantWorkspaceData? _workspace;
 
   @override
   void initState() {
     super.initState();
-    _snapshotFuture = widget.snapshotFuture ?? loadAssistantSnapshot();
+    _workspaceFuture = widget.workspaceFuture ?? loadAssistantWorkspaceData();
+  }
+
+  void _handleWorkspaceChanged(AssistantWorkspaceData workspace) {
+    setState(() {
+      _workspace = workspace;
+    });
   }
 
   @override
   Widget build(BuildContext context) {
-    return FutureBuilder<AssistantSnapshot>(
-      future: _snapshotFuture,
+    return FutureBuilder<AssistantWorkspaceData>(
+      future: _workspaceFuture,
       builder: (context, snapshot) {
         if (snapshot.hasError) {
           return ErrorScaffold(message: '${snapshot.error}');
         }
-        if (!snapshot.hasData) {
+        final workspace = _workspace ?? snapshot.data;
+        if (workspace == null) {
           return const LoadingScaffold();
         }
-        return AssistantHomePage(snapshot: snapshot.data!);
+        return AssistantHomePage(
+          workspace: workspace,
+          onWorkspaceChanged: _handleWorkspaceChanged,
+        );
       },
     );
   }
 }
 
 class AssistantHomePage extends StatefulWidget {
-  const AssistantHomePage({super.key, required this.snapshot});
+  const AssistantHomePage({
+    super.key,
+    required this.workspace,
+    required this.onWorkspaceChanged,
+  });
 
-  final AssistantSnapshot snapshot;
+  final AssistantWorkspaceData workspace;
+  final ValueChanged<AssistantWorkspaceData> onWorkspaceChanged;
 
   @override
   State<AssistantHomePage> createState() => _AssistantHomePageState();
@@ -119,9 +136,13 @@ class _AssistantHomePageState extends State<AssistantHomePage> {
   @override
   Widget build(BuildContext context) {
     final pages = <Widget>[
-      TodayView(snapshot: widget.snapshot),
-      MedicationView(snapshot: widget.snapshot),
-      RoutineView(snapshot: widget.snapshot),
+      TodayView(snapshot: widget.workspace.snapshot),
+      MedicationView(snapshot: widget.workspace.snapshot),
+      RoutineView(snapshot: widget.workspace.snapshot),
+      AssistantEditorView(
+        workspace: widget.workspace,
+        onWorkspaceChanged: widget.onWorkspaceChanged,
+      ),
     ];
 
     return Scaffold(
@@ -156,6 +177,11 @@ class _AssistantHomePageState extends State<AssistantHomePage> {
             icon: Icon(Icons.bedtime_outlined),
             selectedIcon: Icon(Icons.bedtime),
             label: 'Routine',
+          ),
+          NavigationDestination(
+            icon: Icon(Icons.edit_note_outlined),
+            selectedIcon: Icon(Icons.edit_note),
+            label: 'Editor',
           ),
         ],
       ),
@@ -796,6 +822,9 @@ class SupplementSetsCard extends StatelessWidget {
 Widget previewAssistantHomePage() {
   return MaterialApp(
     debugShowCheckedModeBanner: false,
-    home: AssistantHomePage(snapshot: AssistantSnapshot.sample()),
+    home: AssistantHomePage(
+      workspace: AssistantWorkspaceData.sample(),
+      onWorkspaceChanged: (_) {},
+    ),
   );
 }
