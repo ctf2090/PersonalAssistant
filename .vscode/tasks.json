@@ -24,6 +24,16 @@
       "problemMatcher": []
     },
     {
+      "label": "PA Smart Build + Run EXE",
+      "type": "shell",
+      "command": "powershell -NoProfile -ExecutionPolicy Bypass -File \"${workspaceFolder}\\.vscode\\run_release_smart.ps1\"",
+      "group": {
+        "kind": "build",
+        "isDefault": true
+      },
+      "problemMatcher": []
+    },
+    {
       "label": "PA Build + Run EXE",
       "dependsOrder": "sequence",
       "dependsOn": [
@@ -31,10 +41,6 @@
         "PA Build Windows",
         "PA Run Release EXE"
       ],
-      "group": {
-        "kind": "build",
-        "isDefault": true
-      },
       "problemMatcher": []
     }
   ]

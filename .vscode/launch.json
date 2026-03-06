@@ -22,11 +22,8 @@
     {
       "name": "PA Flutter (Windows Release)",
       "request": "launch",
-      "type": "dart",
-      "cwd": "${workspaceFolder}/app",
-      "program": "lib/main.dart",
-      "deviceId": "windows",
-      "flutterMode": "release"
+      "type": "node-terminal",
+      "command": "powershell -NoProfile -ExecutionPolicy Bypass -File \"${workspaceFolder}\\.vscode\\run_release_smart.ps1\""
     }
   ]
 }
