@@ -1,0 +1,41 @@
+{
+  "version": "2.0.0",
+  "tasks": [
+    {
+      "label": "PA Stop EXE",
+      "type": "shell",
+      "command": "Get-Process personal_assistant -ErrorAction SilentlyContinue | Stop-Process -Force",
+      "problemMatcher": []
+    },
+    {
+      "label": "PA Build Windows",
+      "type": "shell",
+      "command": "flutter build windows",
+      "options": {
+        "cwd": "${workspaceFolder}/app"
+      },
+      "group": "build",
+      "problemMatcher": []
+    },
+    {
+      "label": "PA Run Release EXE",
+      "type": "shell",
+      "command": "Start-Process -FilePath \"${workspaceFolder}\\app\\build\\windows\\x64\\runner\\Release\\personal_assistant.exe\"",
+      "problemMatcher": []
+    },
+    {
+      "label": "PA Build + Run EXE",
+      "dependsOrder": "sequence",
+      "dependsOn": [
+        "PA Stop EXE",
+        "PA Build Windows",
+        "PA Run Release EXE"
+      ],
+      "group": {
+        "kind": "build",
+        "isDefault": true
+      },
+      "problemMatcher": []
+    }
+  ]
+}
