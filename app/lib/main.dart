@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/widget_previews.dart';
 
 void main() {
   runApp(const PersonalAssistantApp());
@@ -827,4 +828,12 @@ enum ItemStatus {
 
   final String label;
   final Color color;
+}
+
+@Preview(name: 'AssistantHomePage')
+Widget previewAssistantHomePage() {
+  return const MaterialApp(
+    debugShowCheckedModeBanner: false,
+    home: AssistantHomePage(),
+  );
 }
