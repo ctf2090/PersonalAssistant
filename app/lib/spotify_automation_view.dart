@@ -12,6 +12,7 @@ import 'spotify_playlist_service.dart';
 import 'spotify_settings.dart';
 import 'spotify_settings_repository.dart';
 import 'spotify_track_service.dart';
+import 'windows_spotify_launcher_service.dart';
 import 'windows_schedule_service.dart';
 
 const String _defaultOpenAiPlaylistModel = 'gpt-4.1-mini';
@@ -33,6 +34,8 @@ class _SpotifyAutomationViewState extends State<SpotifyAutomationView> {
   final SpotifyPlaybackService _playbackService = SpotifyPlaybackService();
   final SpotifyPlaylistService _playlistService = SpotifyPlaylistService();
   final SpotifyTrackService _trackService = SpotifyTrackService();
+  final WindowsSpotifyLauncherService _spotifyLauncher =
+      const WindowsSpotifyLauncherService();
   final WindowsScheduleService _scheduleService =
       const WindowsScheduleService();
 
@@ -377,12 +380,7 @@ class _SpotifyAutomationViewState extends State<SpotifyAutomationView> {
         throw StateError('Default playlist URI is required before testing.');
       }
       saved = await _authService.ensureValidSession(saved);
-      final devices = await _deviceService.listDevices(saved.accessToken!);
-      final targetDevice = _deviceService.resolvePreferredDevice(
-        devices: devices,
-        preferredName: saved.defaultDeviceName,
-        preferredType: saved.defaultDeviceType,
-      );
+      final targetDevice = await _resolveDefaultPlaybackDevice(saved);
       if (targetDevice == null) {
         throw StateError('No controllable Spotify device was available.');
       }
@@ -425,6 +423,36 @@ class _SpotifyAutomationViewState extends State<SpotifyAutomationView> {
         _statusMessage = 'Triggered default playlist test playback.';
       });
     });
+  }
+
+  Future<SpotifyDevice?> _resolveDefaultPlaybackDevice(
+    SpotifyAutomationSettings settings,
+  ) async {
+    var devices = await _deviceService.listDevices(settings.accessToken!);
+    var targetDevice = _deviceService.resolvePreferredDevice(
+      devices: devices,
+      preferredName: settings.defaultDeviceName,
+      preferredType: settings.defaultDeviceType,
+    );
+    if (targetDevice != null) {
+      return targetDevice;
+    }
+
+    await _spotifyLauncher.ensureStarted();
+
+    for (var attempt = 0; attempt < 5; attempt++) {
+      await Future<void>.delayed(const Duration(seconds: 2));
+      devices = await _deviceService.listDevices(settings.accessToken!);
+      targetDevice = _deviceService.resolvePreferredDevice(
+        devices: devices,
+        preferredName: settings.defaultDeviceName,
+        preferredType: settings.defaultDeviceType,
+      );
+      if (targetDevice != null) {
+        return targetDevice;
+      }
+    }
+    return null;
   }
 
   Future<void> _syncSchedules() async {
