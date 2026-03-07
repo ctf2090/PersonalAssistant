@@ -126,7 +126,7 @@ class SpotifyTrackService {
     for (var offset = 0; offset < trackUris.length; offset += 100) {
       final chunk = trackUris.skip(offset).take(100).toList();
       final response = await _client.post(
-        Uri.parse('https://api.spotify.com/v1/playlists/$playlistId/tracks'),
+        Uri.parse('https://api.spotify.com/v1/playlists/$playlistId/items'),
         headers: <String, String>{
           'Authorization': 'Bearer $accessToken',
           'Content-Type': 'application/json',
