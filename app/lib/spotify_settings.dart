@@ -6,6 +6,8 @@ class SpotifyAutomationSettings {
   const SpotifyAutomationSettings({
     required this.clientId,
     required this.redirectPort,
+    this.openAiApiKey,
+    this.openAiModel,
     this.accessToken,
     this.refreshToken,
     this.accessTokenExpiresAt,
@@ -19,6 +21,8 @@ class SpotifyAutomationSettings {
 
   final String clientId;
   final int redirectPort;
+  final String? openAiApiKey;
+  final String? openAiModel;
   final String? accessToken;
   final String? refreshToken;
   final String? accessTokenExpiresAt;
@@ -37,6 +41,8 @@ class SpotifyAutomationSettings {
     return SpotifyAutomationSettings(
       clientId: '${json['clientId'] ?? ''}',
       redirectPort: _intOrFallback(json['redirectPort'], 43821),
+      openAiApiKey: _nullableString(json['openAiApiKey']),
+      openAiModel: _nullableString(json['openAiModel']),
       accessToken: _nullableString(json['accessToken']),
       refreshToken: _nullableString(json['refreshToken']),
       accessTokenExpiresAt: _nullableString(json['accessTokenExpiresAt']),
@@ -54,6 +60,8 @@ class SpotifyAutomationSettings {
   String get redirectUri => 'http://127.0.0.1:$redirectPort/spotify/callback';
 
   bool get hasClientId => clientId.trim().isNotEmpty;
+
+  bool get hasOpenAiApiKey => openAiApiKey?.trim().isNotEmpty ?? false;
 
   bool get hasRefreshToken => refreshToken?.trim().isNotEmpty ?? false;
 
@@ -75,6 +83,10 @@ class SpotifyAutomationSettings {
   SpotifyAutomationSettings copyWith({
     String? clientId,
     int? redirectPort,
+    String? openAiApiKey,
+    bool clearOpenAiApiKey = false,
+    String? openAiModel,
+    bool clearOpenAiModel = false,
     String? accessToken,
     bool clearAccessToken = false,
     String? refreshToken,
@@ -97,6 +109,10 @@ class SpotifyAutomationSettings {
     return SpotifyAutomationSettings(
       clientId: clientId ?? this.clientId,
       redirectPort: redirectPort ?? this.redirectPort,
+      openAiApiKey: clearOpenAiApiKey
+          ? null
+          : openAiApiKey ?? this.openAiApiKey,
+      openAiModel: clearOpenAiModel ? null : openAiModel ?? this.openAiModel,
       accessToken: clearAccessToken ? null : accessToken ?? this.accessToken,
       refreshToken: clearRefreshToken
           ? null
@@ -129,6 +145,8 @@ class SpotifyAutomationSettings {
     return <String, dynamic>{
       'clientId': clientId,
       'redirectPort': redirectPort,
+      'openAiApiKey': openAiApiKey,
+      'openAiModel': openAiModel,
       'accessToken': accessToken,
       'refreshToken': refreshToken,
       'accessTokenExpiresAt': accessTokenExpiresAt,

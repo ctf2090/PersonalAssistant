@@ -15,6 +15,8 @@ const List<String> _spotifyScopes = <String>[
   'user-read-currently-playing',
   'playlist-read-private',
   'playlist-read-collaborative',
+  'playlist-modify-private',
+  'playlist-modify-public',
 ];
 
 class SpotifyAuthService {
