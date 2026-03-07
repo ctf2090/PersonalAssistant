@@ -30,7 +30,7 @@ class SpotifyPlaylistSummary {
   }
 
   factory SpotifyPlaylistSummary.fromJson(Map<String, dynamic> json) {
-    final tracks = json['tracks'];
+    final items = json['items'];
     final owner = json['owner'];
     return SpotifyPlaylistSummary(
       id: '${json['id'] ?? ''}',
@@ -39,7 +39,7 @@ class SpotifyPlaylistSummary {
       ownerName: owner is Map
           ? '${owner['display_name'] ?? owner['id'] ?? 'Unknown owner'}'
           : 'Unknown owner',
-      trackCount: _readInt(tracks is Map ? tracks['total'] : null, fallback: 0),
+      trackCount: _readInt(items is Map ? items['total'] : null, fallback: 0),
     );
   }
 }
