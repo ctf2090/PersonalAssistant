@@ -2,5 +2,6 @@
   "git.autofetch": true,
   "git.autofetchPeriod": 180,
   "git.confirmSync": false,
-  "git.postCommitCommand": "sync"
+  "git.postCommitCommand": "sync",
+  "task.allowAutomaticTasks": "on"
 }
