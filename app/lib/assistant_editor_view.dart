@@ -491,6 +491,10 @@ class _AssistantEditorViewState extends State<AssistantEditorView> {
 
   Future<void> _editMdrRoutine([int? index]) async {
     final routine = _listOfMaps(_mdrDraft, 'routine');
+    final spotifyAction = index == null
+        ? const <String, dynamic>{}
+        : _mapValue(routine[index], 'spotifyAction');
+    final firstPlaylist = _firstSpotifyPlaylist(spotifyAction);
     final initial = index == null
         ? <String, dynamic>{
             'title': '',
@@ -500,12 +504,44 @@ class _AssistantEditorViewState extends State<AssistantEditorView> {
             'status': 'scheduled',
             'note': '',
             'relatedCodes': '',
+            'spotifyEnabled': 'false',
+            'spotifyAutoPlay': 'true',
+            'spotifyMode': '',
+            'spotifyPreferredDeviceName': '',
+            'spotifyPreferredDeviceType': 'computer',
+            'spotifyVolumePercent': 25,
+            'spotifyRetryCount': 3,
+            'spotifyRetryDelaySeconds': 15,
+            'spotifyStartMode': 'resumeOrPlay',
+            'spotifyPlaylistUri': '',
+            'spotifyPlaylistLabel': '',
+            'spotifyPlaylistTags': '',
+            'spotifyPlaylistPriority': 100,
           }
         : <String, dynamic>{
             ...routine[index],
             'relatedCodes': _stringList(
               routine[index]['relatedCodes'],
             ).join(', '),
+            'spotifyEnabled': '${spotifyAction['enabled'] ?? false}',
+            'spotifyAutoPlay': '${spotifyAction['autoPlay'] ?? true}',
+            'spotifyMode': '${spotifyAction['mode'] ?? ''}',
+            'spotifyPreferredDeviceName':
+                '${spotifyAction['preferredDeviceName'] ?? ''}',
+            'spotifyPreferredDeviceType':
+                '${spotifyAction['preferredDeviceType'] ?? 'computer'}',
+            'spotifyVolumePercent': spotifyAction['volumePercent'] ?? 25,
+            'spotifyRetryCount': spotifyAction['retryCount'] ?? 3,
+            'spotifyRetryDelaySeconds':
+                spotifyAction['retryDelaySeconds'] ?? 15,
+            'spotifyStartMode':
+                '${spotifyAction['startMode'] ?? 'resumeOrPlay'}',
+            'spotifyPlaylistUri': '${firstPlaylist['uri'] ?? ''}',
+            'spotifyPlaylistLabel': '${firstPlaylist['label'] ?? ''}',
+            'spotifyPlaylistTags': _stringList(
+              firstPlaylist['tags'],
+            ).join(', '),
+            'spotifyPlaylistPriority': firstPlaylist['priority'] ?? 100,
           };
     final updated = await _openObjectEditor(
       title: index == null ? 'Add routine item' : 'Edit routine item',
@@ -521,6 +557,55 @@ class _AssistantEditorViewState extends State<AssistantEditorView> {
           maxLines: 2,
         ),
         _EditorFieldSpec('note', 'Note', maxLines: 4),
+        _EditorFieldSpec(
+          'spotifyEnabled',
+          'Spotify enabled',
+          options: _booleanNames,
+        ),
+        _EditorFieldSpec(
+          'spotifyAutoPlay',
+          'Spotify autoplay',
+          options: _booleanNames,
+        ),
+        _EditorFieldSpec('spotifyMode', 'Spotify mode'),
+        _EditorFieldSpec('spotifyPreferredDeviceName', 'Spotify device name'),
+        _EditorFieldSpec(
+          'spotifyPreferredDeviceType',
+          'Spotify device type',
+          options: _spotifyDeviceTypeNames,
+        ),
+        _EditorFieldSpec(
+          'spotifyVolumePercent',
+          'Spotify volume percent',
+          kind: _EditorFieldKind.number,
+        ),
+        _EditorFieldSpec(
+          'spotifyRetryCount',
+          'Spotify retry count',
+          kind: _EditorFieldKind.number,
+        ),
+        _EditorFieldSpec(
+          'spotifyRetryDelaySeconds',
+          'Spotify retry delay seconds',
+          kind: _EditorFieldKind.number,
+        ),
+        _EditorFieldSpec(
+          'spotifyStartMode',
+          'Spotify start mode',
+          options: _spotifyStartModeNames,
+        ),
+        _EditorFieldSpec('spotifyPlaylistUri', 'Spotify playlist URI'),
+        _EditorFieldSpec('spotifyPlaylistLabel', 'Spotify playlist label'),
+        _EditorFieldSpec(
+          'spotifyPlaylistTags',
+          'Spotify playlist tags (comma separated)',
+          maxLines: 2,
+        ),
+        _EditorFieldSpec(
+          'spotifyPlaylistPriority',
+          'Spotify playlist priority',
+          kind: _EditorFieldKind.number,
+        ),
       ],
       initialValue: initial,
     );
@@ -531,6 +616,10 @@ class _AssistantEditorViewState extends State<AssistantEditorView> {
     updated['relatedCodes'] = _splitCommaValues(
       '${updated['relatedCodes'] ?? ''}',
     );
+    updated['spotifyAction'] = _buildSpotifyActionPayload(updated);
+    for (final key in _spotifyRoutineFieldKeys) {
+      updated.remove(key);
+    }
     if (index == null) {
       routine.add(updated);
     } else {
@@ -586,6 +675,84 @@ class _AssistantEditorViewState extends State<AssistantEditorView> {
   Object? _nullableValue(Object? value) {
     final text = '$value'.trim();
     return text.isEmpty ? null : text;
+  }
+
+  Map<String, dynamic> _firstSpotifyPlaylist(
+    Map<String, dynamic> spotifyAction,
+  ) {
+    final candidates = _listOfMaps(spotifyAction, 'candidatePlaylists');
+    return candidates.isEmpty ? const <String, dynamic>{} : candidates.first;
+  }
+
+  Map<String, dynamic>? _buildSpotifyActionPayload(Map<String, dynamic> draft) {
+    final enabled = '${draft['spotifyEnabled'] ?? 'false'}' == 'true';
+    final autoPlay = '${draft['spotifyAutoPlay'] ?? 'true'}' == 'true';
+    final mode = '${draft['spotifyMode'] ?? ''}'.trim();
+    final preferredDeviceName = '${draft['spotifyPreferredDeviceName'] ?? ''}'
+        .trim();
+    final preferredDeviceType =
+        '${draft['spotifyPreferredDeviceType'] ?? 'computer'}'.trim();
+    final playlistUri = '${draft['spotifyPlaylistUri'] ?? ''}'.trim();
+    final playlistLabel = '${draft['spotifyPlaylistLabel'] ?? ''}'.trim();
+    final playlistTags = _splitCommaValues(
+      '${draft['spotifyPlaylistTags'] ?? ''}',
+    );
+    final volumePercent = draft['spotifyVolumePercent'] as int? ?? 25;
+    final retryCount = draft['spotifyRetryCount'] as int? ?? 3;
+    final retryDelaySeconds = draft['spotifyRetryDelaySeconds'] as int? ?? 15;
+    final playlistPriority = draft['spotifyPlaylistPriority'] as int? ?? 100;
+    final startMode = '${draft['spotifyStartMode'] ?? 'resumeOrPlay'}';
+
+    if (!enabled &&
+        mode.isEmpty &&
+        preferredDeviceName.isEmpty &&
+        playlistUri.isEmpty) {
+      return null;
+    }
+
+    final candidatePlaylists = playlistUri.isEmpty
+        ? const <Map<String, dynamic>>[]
+        : <Map<String, dynamic>>[
+            <String, dynamic>{
+              'uri': playlistUri,
+              'label': playlistLabel.isEmpty
+                  ? 'Primary playlist'
+                  : playlistLabel,
+              'tags': playlistTags,
+              'priority': playlistPriority,
+            },
+          ];
+
+    return <String, dynamic>{
+      'enabled': enabled,
+      'autoPlay': autoPlay,
+      'mode': mode,
+      'preferredDeviceName': preferredDeviceName,
+      'preferredDeviceType': preferredDeviceType,
+      'volumePercent': volumePercent,
+      'retryCount': retryCount,
+      'retryDelaySeconds': retryDelaySeconds,
+      'startMode': startMode,
+      'candidatePlaylists': candidatePlaylists,
+    };
+  }
+
+  List<String> _spotifySummaryLines(Map<String, dynamic> routineItem) {
+    final spotifyAction = _mapValue(routineItem, 'spotifyAction');
+    if (spotifyAction.isEmpty) {
+      return const <String>[];
+    }
+    final firstPlaylist = _firstSpotifyPlaylist(spotifyAction);
+    final lines = <String>[
+      'Spotify ${spotifyAction['enabled'] == true ? 'enabled' : 'disabled'} | autoplay ${spotifyAction['autoPlay'] == true ? 'on' : 'off'} | mode ${spotifyAction['mode'] ?? 'custom'}',
+      'Device ${spotifyAction['preferredDeviceName'] ?? '-'} | type ${spotifyAction['preferredDeviceType'] ?? '-'} | volume ${spotifyAction['volumePercent'] ?? '-'}%',
+    ];
+    if ('${firstPlaylist['uri'] ?? ''}'.trim().isNotEmpty) {
+      lines.add(
+        'Playlist ${firstPlaylist['label'] ?? 'Primary playlist'} | ${firstPlaylist['uri']}',
+      );
+    }
+    return lines;
   }
 
   Widget _buildMdsForm() {
@@ -762,7 +929,10 @@ class _AssistantEditorViewState extends State<AssistantEditorView> {
                   title: '${routine[index]['title'] ?? 'Untitled'}',
                   subtitle:
                       '${routine[index]['time'] ?? 'Flexible'} | ${routine[index]['period'] ?? 'day'} | ${routine[index]['status'] ?? 'pending'}',
-                  lines: ['${routine[index]['note'] ?? ''}'],
+                  lines: [
+                    '${routine[index]['note'] ?? ''}',
+                    ..._spotifySummaryLines(routine[index]),
+                  ],
                   chips: _stringList(routine[index]['relatedCodes']),
                   onEdit: () => _editMdrRoutine(index),
                   onDelete: () => _deleteMdrRoutine(index),
@@ -944,6 +1114,20 @@ const List<String> _statusNames = [
 
 const List<String> _periodNames = ['day', 'night'];
 
+const List<String> _booleanNames = ['true', 'false'];
+
+const List<String> _spotifyDeviceTypeNames = [
+  'computer',
+  'speaker',
+  'smartphone',
+  'tablet',
+  'tv',
+  'audio_dongle',
+  'unknown',
+];
+
+const List<String> _spotifyStartModeNames = ['resumeOrPlay', 'startFresh'];
+
 const List<String> _iconNames = [
   'medication',
   'biotech_outlined',
@@ -958,6 +1142,22 @@ const List<String> _iconNames = [
   'bedtime_outlined',
   'event_note',
 ];
+
+const Set<String> _spotifyRoutineFieldKeys = <String>{
+  'spotifyEnabled',
+  'spotifyAutoPlay',
+  'spotifyMode',
+  'spotifyPreferredDeviceName',
+  'spotifyPreferredDeviceType',
+  'spotifyVolumePercent',
+  'spotifyRetryCount',
+  'spotifyRetryDelaySeconds',
+  'spotifyStartMode',
+  'spotifyPlaylistUri',
+  'spotifyPlaylistLabel',
+  'spotifyPlaylistTags',
+  'spotifyPlaylistPriority',
+};
 
 enum _EditorFieldKind { text, number }
 

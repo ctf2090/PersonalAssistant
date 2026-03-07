@@ -27,6 +27,9 @@ class AssistantSnapshot {
   final List<SupplementSet> sets;
   final List<RoutineTask> routines;
 
+  List<RoutineTask> get spotifyRoutines =>
+      routines.where((task) => task.spotifyAction?.enabled ?? false).toList();
+
   factory AssistantSnapshot.sample() {
     return const AssistantSnapshot(
       nextDoseTime: '07:30',
@@ -44,14 +47,16 @@ class AssistantSnapshot {
         ),
         TimelineItem(
           title: '30B probiotic window',
-          note: 'Keep the probiotic around 10:00 as the fixed morning follow-up.',
+          note:
+              'Keep the probiotic around 10:00 as the fixed morning follow-up.',
           time: '10:00',
           icon: Icons.biotech_outlined,
           status: ItemStatus.scheduled,
         ),
         TimelineItem(
           title: 'Meal-dependent support',
-          note: 'Use BPG, Lacto, or GlutenEase only when the meal requires them.',
+          note:
+              'Use BPG, Lacto, or GlutenEase only when the meal requires them.',
           time: 'Flexible',
           icon: Icons.restaurant_outlined,
           status: ItemStatus.scheduled,
@@ -167,6 +172,24 @@ class AssistantSnapshot {
           icon: Icons.wb_sunny_outlined,
           period: RoutinePeriod.day,
           status: ItemStatus.dueSoon,
+          spotifyAction: SpotifyAction(
+            enabled: true,
+            autoPlay: true,
+            mode: 'wake_gentle',
+            preferredDeviceName: 'Win11 Spotify',
+            preferredDeviceType: 'computer',
+            volumePercent: 30,
+            retryCount: 3,
+            retryDelaySeconds: 15,
+            candidatePlaylists: [
+              SpotifyPlaylistCandidate(
+                uri: 'spotify:playlist:37i9dQZF1DX3Ogo9pFvBkY',
+                label: 'Gentle wake default',
+                tags: ['wake', 'soft', 'morning'],
+                priority: 100,
+              ),
+            ],
+          ),
         ),
         RoutineTask(
           title: '30B probiotic checkpoint',
@@ -179,7 +202,8 @@ class AssistantSnapshot {
         RoutineTask(
           title: 'Meal-triggered support',
           time: 'Flexible',
-          note: 'Use BPG, Lacto, or GlutenEase only when the meal needs support.',
+          note:
+              'Use BPG, Lacto, or GlutenEase only when the meal needs support.',
           icon: Icons.restaurant_outlined,
           period: RoutinePeriod.day,
           status: ItemStatus.scheduled,
@@ -195,7 +219,8 @@ class AssistantSnapshot {
         RoutineTask(
           title: 'Dinner and evening support',
           time: 'After dinner',
-          note: 'Use the ASH slot after dinner and keep diltiazem in the evening plan.',
+          note:
+              'Use the ASH slot after dinner and keep diltiazem in the evening plan.',
           icon: Icons.dinner_dining_outlined,
           period: RoutinePeriod.night,
           status: ItemStatus.pending,
@@ -207,6 +232,24 @@ class AssistantSnapshot {
           icon: Icons.bedtime_outlined,
           period: RoutinePeriod.night,
           status: ItemStatus.pending,
+          spotifyAction: SpotifyAction(
+            enabled: true,
+            autoPlay: true,
+            mode: 'sleep_wind_down',
+            preferredDeviceName: 'Win11 Spotify',
+            preferredDeviceType: 'computer',
+            volumePercent: 20,
+            retryCount: 3,
+            retryDelaySeconds: 15,
+            candidatePlaylists: [
+              SpotifyPlaylistCandidate(
+                uri: 'spotify:playlist:37i9dQZF1DWZd79rJ6a7lp',
+                label: 'Sleep default',
+                tags: ['sleep', 'calm', 'night'],
+                priority: 100,
+              ),
+            ],
+          ),
         ),
       ],
     );
@@ -217,12 +260,12 @@ class AssistantSnapshot {
     Map<String, dynamic> mdr,
   ) {
     final dashboard = _readMap(mdr['dashboard']);
-    final timeline = _readList(mdr['timeline'])
-        .map((item) => TimelineItem.fromJson(_readMap(item)))
-        .toList();
-    final doses = _readList(mds['items'])
-        .map((item) => MedicationDose.fromJson(_readMap(item)))
-        .toList();
+    final timeline = _readList(
+      mdr['timeline'],
+    ).map((item) => TimelineItem.fromJson(_readMap(item))).toList();
+    final doses = _readList(
+      mds['items'],
+    ).map((item) => MedicationDose.fromJson(_readMap(item))).toList();
     final sets = _readMap(mds['sets']).entries
         .map(
           (entry) => SupplementSet(
@@ -232,9 +275,9 @@ class AssistantSnapshot {
           ),
         )
         .toList();
-    final routines = _readList(mdr['routine'])
-        .map((item) => RoutineTask.fromJson(_readMap(item)))
-        .toList();
+    final routines = _readList(
+      mdr['routine'],
+    ).map((item) => RoutineTask.fromJson(_readMap(item))).toList();
 
     return AssistantSnapshot(
       nextDoseTime: _stringOrFallback(dashboard['nextItemTime'], '07:30'),
@@ -369,7 +412,10 @@ class MedicationDose {
       instructions: _stringOrFallback(json['category'], 'Support item'),
       time: _stringOrFallback(json['time'], 'Flexible'),
       mealTiming: _stringOrFallback(json['mealTiming'], 'Flexible'),
-      note: _stringOrFallback(json['details'], 'Code: ${json['code'] ?? 'N/A'}'),
+      note: _stringOrFallback(
+        json['details'],
+        'Code: ${json['code'] ?? 'N/A'}',
+      ),
       status: _statusFromName(json['status']),
     );
   }
@@ -395,6 +441,7 @@ class RoutineTask {
     required this.icon,
     required this.period,
     required this.status,
+    this.spotifyAction,
   });
 
   final String title;
@@ -403,8 +450,10 @@ class RoutineTask {
   final IconData icon;
   final RoutinePeriod period;
   final ItemStatus status;
+  final SpotifyAction? spotifyAction;
 
   factory RoutineTask.fromJson(Map<String, dynamic> json) {
+    final spotifyActionJson = _readOptionalMap(json['spotifyAction']);
     return RoutineTask(
       title: _stringOrFallback(json['title'], 'Untitled routine'),
       time: _stringOrFallback(json['time'], 'Flexible'),
@@ -412,9 +461,96 @@ class RoutineTask {
       icon: _iconFromName(json['icon']),
       period: _periodFromName(json['period']),
       status: _statusFromName(json['status']),
+      spotifyAction: spotifyActionJson == null
+          ? null
+          : SpotifyAction.fromJson(spotifyActionJson),
     );
   }
 }
+
+class SpotifyAction {
+  const SpotifyAction({
+    required this.enabled,
+    required this.autoPlay,
+    required this.mode,
+    required this.preferredDeviceName,
+    required this.preferredDeviceType,
+    required this.volumePercent,
+    required this.retryCount,
+    required this.retryDelaySeconds,
+    this.startMode = SpotifyStartMode.resumeOrPlay,
+    this.candidatePlaylists = const <SpotifyPlaylistCandidate>[],
+  });
+
+  final bool enabled;
+  final bool autoPlay;
+  final String mode;
+  final String preferredDeviceName;
+  final String preferredDeviceType;
+  final int volumePercent;
+  final int retryCount;
+  final int retryDelaySeconds;
+  final SpotifyStartMode startMode;
+  final List<SpotifyPlaylistCandidate> candidatePlaylists;
+
+  String get primaryPlaylistUri =>
+      candidatePlaylists.isEmpty ? '' : candidatePlaylists.first.uri;
+
+  factory SpotifyAction.fromJson(Map<String, dynamic> json) {
+    final playlists = _readList(
+      json['candidatePlaylists'],
+    ).map((item) => SpotifyPlaylistCandidate.fromJson(_readMap(item))).toList();
+    final legacyUri = _stringOrFallback(json['playlistUri'], '');
+    if (playlists.isEmpty && legacyUri.isNotEmpty) {
+      playlists.add(
+        SpotifyPlaylistCandidate(
+          uri: legacyUri,
+          label: _stringOrFallback(json['playlistLabel'], 'Primary playlist'),
+          tags: const <String>[],
+          priority: 100,
+        ),
+      );
+    }
+
+    return SpotifyAction(
+      enabled: _boolOrFallback(json['enabled'], true),
+      autoPlay: _boolOrFallback(json['autoPlay'], true),
+      mode: _stringOrFallback(json['mode'], 'custom'),
+      preferredDeviceName: _stringOrFallback(json['preferredDeviceName'], ''),
+      preferredDeviceType: _stringOrFallback(json['preferredDeviceType'], ''),
+      volumePercent: _intOrFallback(json['volumePercent'], 25),
+      retryCount: _intOrFallback(json['retryCount'], 3),
+      retryDelaySeconds: _intOrFallback(json['retryDelaySeconds'], 15),
+      startMode: _spotifyStartModeFromName(json['startMode']),
+      candidatePlaylists: playlists,
+    );
+  }
+}
+
+class SpotifyPlaylistCandidate {
+  const SpotifyPlaylistCandidate({
+    required this.uri,
+    required this.label,
+    required this.tags,
+    required this.priority,
+  });
+
+  final String uri;
+  final String label;
+  final List<String> tags;
+  final int priority;
+
+  factory SpotifyPlaylistCandidate.fromJson(Map<String, dynamic> json) {
+    return SpotifyPlaylistCandidate(
+      uri: _stringOrFallback(json['uri'], ''),
+      label: _stringOrFallback(json['label'], 'Playlist'),
+      tags: _readList(json['tags']).map((item) => '$item').toList(),
+      priority: _intOrFallback(json['priority'], 100),
+    );
+  }
+}
+
+enum SpotifyStartMode { resumeOrPlay, startFresh }
 
 enum RoutinePeriod { day, night }
 
@@ -434,6 +570,16 @@ Map<String, dynamic> _readMap(Object? value) {
   return (value as Map).cast<String, dynamic>();
 }
 
+Map<String, dynamic>? _readOptionalMap(Object? value) {
+  if (value is Map<String, dynamic>) {
+    return value;
+  }
+  if (value is Map) {
+    return value.cast<String, dynamic>();
+  }
+  return null;
+}
+
 List<dynamic> _readList(Object? value) {
   return (value as List<dynamic>? ?? const <dynamic>[]);
 }
@@ -451,6 +597,20 @@ int _intOrFallback(Object? value, int fallback) {
     return value.toInt();
   }
   return int.tryParse('${value ?? ''}') ?? fallback;
+}
+
+bool _boolOrFallback(Object? value, bool fallback) {
+  if (value is bool) {
+    return value;
+  }
+  final text = '${value ?? ''}'.trim().toLowerCase();
+  if (text == 'true') {
+    return true;
+  }
+  if (text == 'false') {
+    return false;
+  }
+  return fallback;
 }
 
 String _deriveDosage(Map<String, dynamic> json) {
@@ -517,6 +677,12 @@ ItemStatus _statusFromName(Object? value) {
 
 RoutinePeriod _periodFromName(Object? value) {
   return '$value' == 'night' ? RoutinePeriod.night : RoutinePeriod.day;
+}
+
+SpotifyStartMode _spotifyStartModeFromName(Object? value) {
+  return '$value' == 'startFresh'
+      ? SpotifyStartMode.startFresh
+      : SpotifyStartMode.resumeOrPlay;
 }
 
 IconData _iconFromName(Object? value) {
@@ -642,6 +808,29 @@ const String _sampleMdrJson = r'''
       "icon": "wb_sunny_outlined",
       "status": "dueSoon",
       "note": "Take the breakfast stack and anchor the day with CMZD.",
+      "spotifyAction": {
+        "enabled": true,
+        "autoPlay": true,
+        "mode": "wake_gentle",
+        "preferredDeviceName": "Win11 Spotify",
+        "preferredDeviceType": "computer",
+        "volumePercent": 30,
+        "retryCount": 3,
+        "retryDelaySeconds": 15,
+        "startMode": "resumeOrPlay",
+        "candidatePlaylists": [
+          {
+            "uri": "spotify:playlist:37i9dQZF1DX3Ogo9pFvBkY",
+            "label": "Gentle wake default",
+            "tags": [
+              "wake",
+              "soft",
+              "morning"
+            ],
+            "priority": 100
+          }
+        ]
+      },
       "relatedCodes": [
         "CMZD"
       ]
