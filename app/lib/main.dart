@@ -1,11 +1,19 @@
+import 'dart:io';
+
 import 'package:flutter/material.dart';
 import 'package:flutter/widget_previews.dart';
 
 import 'assistant_editor_view.dart';
 import 'assistant_models.dart';
 import 'assistant_workspace_repository.dart';
+import 'spotify_automation_runner.dart';
+import 'spotify_automation_view.dart';
 
-void main() {
+Future<void> main(List<String> args) async {
+  WidgetsFlutterBinding.ensureInitialized();
+  if (await tryRunSpotifyAutomationCommand(args)) {
+    exit(0);
+  }
   runApp(const PersonalAssistantApp());
 }
 
@@ -139,6 +147,7 @@ class _AssistantHomePageState extends State<AssistantHomePage> {
       TodayView(snapshot: widget.workspace.snapshot),
       MedicationView(snapshot: widget.workspace.snapshot),
       RoutineView(snapshot: widget.workspace.snapshot),
+      SpotifyAutomationView(workspace: widget.workspace),
       AssistantEditorView(
         workspace: widget.workspace,
         onWorkspaceChanged: widget.onWorkspaceChanged,
@@ -177,6 +186,11 @@ class _AssistantHomePageState extends State<AssistantHomePage> {
             icon: Icon(Icons.bedtime_outlined),
             selectedIcon: Icon(Icons.bedtime),
             label: 'Routine',
+          ),
+          NavigationDestination(
+            icon: Icon(Icons.graphic_eq_outlined),
+            selectedIcon: Icon(Icons.graphic_eq),
+            label: 'Spotify',
           ),
           NavigationDestination(
             icon: Icon(Icons.edit_note_outlined),
@@ -708,9 +722,7 @@ class MetadataPill extends StatelessWidget {
           children: [
             Icon(icon, size: 16, color: const Color(0xFF395D52)),
             const SizedBox(width: 6),
-            Flexible(
-              child: Text(label, overflow: TextOverflow.ellipsis),
-            ),
+            Flexible(child: Text(label, overflow: TextOverflow.ellipsis)),
           ],
         ),
       ),
@@ -723,11 +735,7 @@ class LoadingScaffold extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return const Scaffold(
-      body: Center(
-        child: CircularProgressIndicator(),
-      ),
-    );
+    return const Scaffold(body: Center(child: CircularProgressIndicator()));
   }
 }
 
@@ -750,7 +758,10 @@ class ErrorScaffold extends StatelessWidget {
                 mainAxisSize: MainAxisSize.min,
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text('Unable to load PA data', style: theme.textTheme.headlineSmall),
+                  Text(
+                    'Unable to load PA data',
+                    style: theme.textTheme.headlineSmall,
+                  ),
                   const SizedBox(height: 12),
                   Text(
                     'Check the root data directory and ensure MDS.json and MDR.json are valid UTF-8 JSON files.',
