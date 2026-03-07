@@ -12,6 +12,8 @@ class SpotifyAutomationSettings {
     this.connectedUserDisplayName,
     this.defaultDeviceName,
     this.defaultDeviceType,
+    this.defaultPlaylistUri,
+    this.defaultPlaylistLabel,
     this.lastConnectedAt,
   });
 
@@ -23,6 +25,8 @@ class SpotifyAutomationSettings {
   final String? connectedUserDisplayName;
   final String? defaultDeviceName;
   final String? defaultDeviceType;
+  final String? defaultPlaylistUri;
+  final String? defaultPlaylistLabel;
   final String? lastConnectedAt;
 
   factory SpotifyAutomationSettings.empty() {
@@ -41,6 +45,8 @@ class SpotifyAutomationSettings {
       ),
       defaultDeviceName: _nullableString(json['defaultDeviceName']),
       defaultDeviceType: _nullableString(json['defaultDeviceType']),
+      defaultPlaylistUri: _nullableString(json['defaultPlaylistUri']),
+      defaultPlaylistLabel: _nullableString(json['defaultPlaylistLabel']),
       lastConnectedAt: _nullableString(json['lastConnectedAt']),
     );
   }
@@ -81,6 +87,10 @@ class SpotifyAutomationSettings {
     bool clearDefaultDeviceName = false,
     String? defaultDeviceType,
     bool clearDefaultDeviceType = false,
+    String? defaultPlaylistUri,
+    bool clearDefaultPlaylistUri = false,
+    String? defaultPlaylistLabel,
+    bool clearDefaultPlaylistLabel = false,
     String? lastConnectedAt,
     bool clearLastConnectedAt = false,
   }) {
@@ -103,6 +113,12 @@ class SpotifyAutomationSettings {
       defaultDeviceType: clearDefaultDeviceType
           ? null
           : defaultDeviceType ?? this.defaultDeviceType,
+      defaultPlaylistUri: clearDefaultPlaylistUri
+          ? null
+          : defaultPlaylistUri ?? this.defaultPlaylistUri,
+      defaultPlaylistLabel: clearDefaultPlaylistLabel
+          ? null
+          : defaultPlaylistLabel ?? this.defaultPlaylistLabel,
       lastConnectedAt: clearLastConnectedAt
           ? null
           : lastConnectedAt ?? this.lastConnectedAt,
@@ -119,6 +135,8 @@ class SpotifyAutomationSettings {
       'connectedUserDisplayName': connectedUserDisplayName,
       'defaultDeviceName': defaultDeviceName,
       'defaultDeviceType': defaultDeviceType,
+      'defaultPlaylistUri': defaultPlaylistUri,
+      'defaultPlaylistLabel': defaultPlaylistLabel,
       'lastConnectedAt': lastConnectedAt,
     };
   }

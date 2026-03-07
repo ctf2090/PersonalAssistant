@@ -6,6 +6,7 @@ import 'assistant_models.dart';
 import 'spotify_auth_service.dart';
 import 'spotify_automation_runner.dart';
 import 'spotify_device_service.dart';
+import 'spotify_playback_service.dart';
 import 'spotify_settings.dart';
 import 'spotify_settings_repository.dart';
 import 'windows_schedule_service.dart';
@@ -23,11 +24,16 @@ class _SpotifyAutomationViewState extends State<SpotifyAutomationView> {
   final SpotifyAuthService _authService = SpotifyAuthService();
   final SpotifyDeviceService _deviceService = SpotifyDeviceService();
   final SpotifyAutomationRunner _automationRunner = SpotifyAutomationRunner();
+  final SpotifyPlaybackService _playbackService = SpotifyPlaybackService();
   final WindowsScheduleService _scheduleService =
       const WindowsScheduleService();
 
   final TextEditingController _clientIdController = TextEditingController();
   final TextEditingController _redirectPortController = TextEditingController();
+  final TextEditingController _defaultPlaylistUriController =
+      TextEditingController();
+  final TextEditingController _defaultPlaylistLabelController =
+      TextEditingController();
 
   SpotifyAutomationSettings _settings = SpotifyAutomationSettings.empty();
   List<SpotifyDevice> _devices = const <SpotifyDevice>[];
@@ -44,6 +50,8 @@ class _SpotifyAutomationViewState extends State<SpotifyAutomationView> {
   void dispose() {
     _clientIdController.dispose();
     _redirectPortController.dispose();
+    _defaultPlaylistUriController.dispose();
+    _defaultPlaylistLabelController.dispose();
     super.dispose();
   }
 
@@ -56,6 +64,9 @@ class _SpotifyAutomationViewState extends State<SpotifyAutomationView> {
       _settings = settings;
       _clientIdController.text = settings.clientId;
       _redirectPortController.text = '${settings.redirectPort}';
+      _defaultPlaylistUriController.text = settings.defaultPlaylistUri ?? '';
+      _defaultPlaylistLabelController.text =
+          settings.defaultPlaylistLabel ?? '';
     });
   }
 
@@ -87,6 +98,8 @@ class _SpotifyAutomationViewState extends State<SpotifyAutomationView> {
     return _settings.copyWith(
       clientId: _clientIdController.text.trim(),
       redirectPort: int.tryParse(_redirectPortController.text.trim()) ?? 43821,
+      defaultPlaylistUri: _defaultPlaylistUriController.text.trim(),
+      defaultPlaylistLabel: _defaultPlaylistLabelController.text.trim(),
     );
   }
 
@@ -174,6 +187,64 @@ class _SpotifyAutomationViewState extends State<SpotifyAutomationView> {
     });
   }
 
+  Future<void> _testDefaultPlaylist() async {
+    await _runBusyTask(() async {
+      var saved = await saveSpotifyAutomationSettings(_draftSettings());
+      final playlistUri = (saved.defaultPlaylistUri ?? '').trim();
+      if (playlistUri.isEmpty) {
+        throw StateError('Default playlist URI is required before testing.');
+      }
+      saved = await _authService.ensureValidSession(saved);
+      final devices = await _deviceService.listDevices(saved.accessToken!);
+      final targetDevice = _deviceService.resolvePreferredDevice(
+        devices: devices,
+        preferredName: saved.defaultDeviceName,
+        preferredType: saved.defaultDeviceType,
+      );
+      if (targetDevice == null) {
+        throw StateError('No controllable Spotify device was available.');
+      }
+      final action = SpotifyAction(
+        enabled: true,
+        autoPlay: true,
+        mode: 'default_test',
+        preferredDeviceName: saved.defaultDeviceName ?? targetDevice.name,
+        preferredDeviceType: saved.defaultDeviceType ?? targetDevice.type,
+        volumePercent: 30,
+        retryCount: 1,
+        retryDelaySeconds: 0,
+        candidatePlaylists: [
+          SpotifyPlaylistCandidate(
+            uri: playlistUri,
+            label: (saved.defaultPlaylistLabel ?? '').trim().isEmpty
+                ? 'Default playlist'
+                : saved.defaultPlaylistLabel!,
+            tags: const ['test'],
+            priority: 100,
+          ),
+        ],
+      );
+      await _playbackService.playRoutineAction(
+        accessToken: saved.accessToken!,
+        action: action,
+        targetDevice: targetDevice,
+      );
+      saved = await saveSpotifyAutomationSettings(
+        saved.copyWith(
+          defaultDeviceName: targetDevice.name,
+          defaultDeviceType: targetDevice.type,
+        ),
+      );
+      if (!mounted) {
+        return;
+      }
+      setState(() {
+        _settings = saved;
+        _statusMessage = 'Triggered default playlist test playback.';
+      });
+    });
+  }
+
   Future<void> _syncSchedules() async {
     await _runBusyTask(() async {
       final executablePath = Platform.resolvedExecutable;
@@ -225,10 +296,13 @@ class _SpotifyAutomationViewState extends State<SpotifyAutomationView> {
           connectedUserDisplayName: _settings.connectedUserDisplayName,
           defaultDeviceName: _settings.defaultDeviceName,
           defaultDeviceType: _settings.defaultDeviceType,
+          defaultPlaylistUriController: _defaultPlaylistUriController,
+          defaultPlaylistLabelController: _defaultPlaylistLabelController,
           isBusy: _isBusy,
           onSave: _saveSettingsOnly,
           onConnect: _connectSpotify,
           onRefreshDevices: _refreshDevices,
+          onTestDefaultPlaylist: _testDefaultPlaylist,
         ),
         const SizedBox(height: 16),
         _ScheduleCard(isBusy: _isBusy, onSyncSchedules: _syncSchedules),
@@ -275,10 +349,13 @@ class _ConnectionCard extends StatelessWidget {
     required this.connectedUserDisplayName,
     required this.defaultDeviceName,
     required this.defaultDeviceType,
+    required this.defaultPlaylistUriController,
+    required this.defaultPlaylistLabelController,
     required this.isBusy,
     required this.onSave,
     required this.onConnect,
     required this.onRefreshDevices,
+    required this.onTestDefaultPlaylist,
   });
 
   final TextEditingController clientIdController;
@@ -286,10 +363,13 @@ class _ConnectionCard extends StatelessWidget {
   final String? connectedUserDisplayName;
   final String? defaultDeviceName;
   final String? defaultDeviceType;
+  final TextEditingController defaultPlaylistUriController;
+  final TextEditingController defaultPlaylistLabelController;
   final bool isBusy;
   final VoidCallback onSave;
   final VoidCallback onConnect;
   final VoidCallback onRefreshDevices;
+  final VoidCallback onTestDefaultPlaylist;
 
   @override
   Widget build(BuildContext context) {
@@ -320,6 +400,22 @@ class _ConnectionCard extends StatelessWidget {
               decoration: const InputDecoration(labelText: 'Redirect port'),
             ),
             const SizedBox(height: 12),
+            TextField(
+              controller: defaultPlaylistUriController,
+              decoration: const InputDecoration(
+                labelText: 'Default playlist URI',
+                hintText: 'spotify:playlist:...',
+              ),
+            ),
+            const SizedBox(height: 12),
+            TextField(
+              controller: defaultPlaylistLabelController,
+              decoration: const InputDecoration(
+                labelText: 'Default playlist label',
+                hintText: 'Optional label for quick testing',
+              ),
+            ),
+            const SizedBox(height: 12),
             SelectableText(
               'Redirect URI: http://127.0.0.1:$redirectPort/spotify/callback',
               style: theme.textTheme.bodyMedium,
@@ -343,6 +439,11 @@ class _ConnectionCard extends StatelessWidget {
                   onPressed: isBusy ? null : onRefreshDevices,
                   icon: const Icon(Icons.speaker_group_outlined),
                   label: const Text('Refresh devices'),
+                ),
+                OutlinedButton.icon(
+                  onPressed: isBusy ? null : onTestDefaultPlaylist,
+                  icon: const Icon(Icons.play_circle_outline),
+                  label: const Text('Test default playlist'),
                 ),
               ],
             ),
