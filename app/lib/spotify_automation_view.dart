@@ -680,7 +680,7 @@ class _RoutineSpotifyCard extends StatelessWidget {
             ),
             const SizedBox(height: 4),
             Text(
-              'Device ${action.preferredDeviceName} (${action.preferredDeviceType}) | volume ${action.volumePercent}%',
+              'Device ${action.preferredDeviceName} (${action.preferredDeviceType}) | keep current volume',
               style: theme.textTheme.bodyMedium,
             ),
             if (playlist != null) ...[

@@ -27,13 +27,6 @@ class SpotifyPlaybackService {
     }
 
     await _transferPlayback(accessToken: accessToken, deviceId: deviceId);
-    if (action.volumePercent >= 0 && targetDevice.supportsVolume) {
-      await _setVolume(
-        accessToken: accessToken,
-        deviceId: deviceId,
-        volumePercent: action.volumePercent.clamp(0, 100),
-      );
-    }
 
     await Future<void>.delayed(const Duration(milliseconds: 350));
     await _startPlayback(
@@ -61,25 +54,6 @@ class SpotifyPlaybackService {
     if (response.statusCode != 204) {
       throw StateError(
         'Spotify transfer playback failed (${response.statusCode}): ${response.body}',
-      );
-    }
-  }
-
-  Future<void> _setVolume({
-    required String accessToken,
-    required String deviceId,
-    required int volumePercent,
-  }) async {
-    final response = await _client.put(
-      Uri.https('api.spotify.com', '/v1/me/player/volume', <String, String>{
-        'device_id': deviceId,
-        'volume_percent': '$volumePercent',
-      }),
-      headers: <String, String>{'Authorization': 'Bearer $accessToken'},
-    );
-    if (response.statusCode != 204) {
-      throw StateError(
-        'Spotify set volume failed (${response.statusCode}): ${response.body}',
       );
     }
   }

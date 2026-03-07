@@ -19,6 +19,16 @@ class SpotifyPlaylistSummary {
 
   String get label => '$name · $ownerName';
 
+  SpotifyPlaylistSummary copyWith({int? trackCount}) {
+    return SpotifyPlaylistSummary(
+      id: id,
+      uri: uri,
+      name: name,
+      ownerName: ownerName,
+      trackCount: trackCount ?? this.trackCount,
+    );
+  }
+
   factory SpotifyPlaylistSummary.fromJson(Map<String, dynamic> json) {
     final tracks = json['tracks'];
     final owner = json['owner'];
@@ -29,9 +39,7 @@ class SpotifyPlaylistSummary {
       ownerName: owner is Map
           ? '${owner['display_name'] ?? owner['id'] ?? 'Unknown owner'}'
           : 'Unknown owner',
-      trackCount: tracks is Map && tracks['total'] is num
-          ? (tracks['total'] as num).toInt()
-          : 0,
+      trackCount: _readInt(tracks is Map ? tracks['total'] : null, fallback: 0),
     );
   }
 }
@@ -80,6 +88,55 @@ class SpotifyPlaylistService {
           : null;
     }
 
-    return playlists;
+    return _fillMissingTrackCounts(accessToken, playlists);
   }
+
+  Future<List<SpotifyPlaylistSummary>> _fillMissingTrackCounts(
+    String accessToken,
+    List<SpotifyPlaylistSummary> playlists,
+  ) async {
+    final results = <SpotifyPlaylistSummary>[];
+    for (final playlist in playlists) {
+      if (playlist.trackCount > 0) {
+        results.add(playlist);
+        continue;
+      }
+      final count = await _fetchPlaylistTrackCount(accessToken, playlist.id);
+      results.add(playlist.copyWith(trackCount: count));
+    }
+    return results;
+  }
+
+  Future<int> _fetchPlaylistTrackCount(
+    String accessToken,
+    String playlistId,
+  ) async {
+    final response = await _client.get(
+      Uri.https(
+        'api.spotify.com',
+        '/v1/playlists/$playlistId',
+        <String, String>{'fields': 'tracks.total'},
+      ),
+      headers: <String, String>{'Authorization': 'Bearer $accessToken'},
+    );
+    if (response.statusCode != 200) {
+      return 0;
+    }
+    final decoded = jsonDecode(response.body);
+    final payload = decoded is Map<String, dynamic>
+        ? decoded
+        : (decoded as Map).cast<String, dynamic>();
+    final tracks = payload['tracks'];
+    return _readInt(tracks is Map ? tracks['total'] : null, fallback: 0);
+  }
+}
+
+int _readInt(Object? value, {required int fallback}) {
+  if (value is int) {
+    return value;
+  }
+  if (value is num) {
+    return value.toInt();
+  }
+  return int.tryParse('${value ?? ''}') ?? fallback;
 }
