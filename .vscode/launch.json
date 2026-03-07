@@ -24,12 +24,6 @@
       "request": "launch",
       "type": "node-terminal",
       "command": "powershell -NoProfile -ExecutionPolicy Bypass -File \"${workspaceFolder}\\.vscode\\run_release_smart.ps1\""
-    },
-    {
-      "name": "PA Flutter (Windows Release Watch)",
-      "request": "launch",
-      "type": "node-terminal",
-      "command": "powershell -NoProfile -ExecutionPolicy Bypass -File \"${workspaceFolder}\\.vscode\\run_release_smart.ps1\" -Watch"
     }
   ]
 }

@@ -34,21 +34,6 @@
       "problemMatcher": []
     },
     {
-      "label": "PA Auto Watch Release + Run EXE",
-      "type": "shell",
-      "command": "powershell -NoProfile -ExecutionPolicy Bypass -File \"${workspaceFolder}\\.vscode\\run_release_smart.ps1\" -Watch",
-      "isBackground": true,
-      "runOptions": {
-        "runOn": "folderOpen"
-      },
-      "presentation": {
-        "reveal": "always",
-        "panel": "dedicated",
-        "clear": false
-      },
-      "problemMatcher": []
-    },
-    {
       "label": "PA Build + Run EXE",
       "dependsOrder": "sequence",
       "dependsOn": [
